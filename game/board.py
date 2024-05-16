@@ -1,5 +1,5 @@
 from random import shuffle
-from game_info import DEFAULT_BUILDINGS, QUESTS, Quest
+from game.game_info import DEFAULT_BUILDINGS, QUESTS, Quest
 
 class BoardState():
     '''Class to represent the state of the board itself 
