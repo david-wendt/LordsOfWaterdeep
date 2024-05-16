@@ -1,7 +1,7 @@
 from random import shuffle
-from game_info import Quest, LORD_CARDS, agentsPerPlayer
-from player import Player
-from board import BoardState
+from game.game_info import Quest, LORD_CARDS, agentsPerPlayer
+from game.player import Player
+from game.board import BoardState
 
 # Class to control the flow of the game, focused on turn progression and move 
 # options. Broadly, this class handles anything involving the game state and
@@ -31,7 +31,7 @@ class GameState():
         self.boardState = BoardState()
 
         # Check that we have a valid number of players
-        assert numPlayers >= 2 and numPlayers <= 5
+        assert 2 <= numPlayers <= 5
         self.numPlayers = numPlayers
 
         # Set default player names
@@ -42,6 +42,9 @@ class GameState():
                 "PlayerThree", "PlayerFour",
                 "PlayerFive"
             ][:numPlayers]
+
+        if len(playerNames) != len(set(playerNames)):
+            raise ValueError("Need to have unique player names")
         
         # Shuffle the lord cards
         shuffled_lord_cards = LORD_CARDS.copy()
@@ -55,6 +58,7 @@ class GameState():
             print(shuffled_lord_cards[i])
             self.players.append(Player(self.playerNames[i], agentsPerPlayer(numPlayers),
                                        shuffled_lord_cards[i]))
+
 
         # This is not only a list of players, but 
         # also represents the turn order. It will 

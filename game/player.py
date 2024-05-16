@@ -1,5 +1,5 @@
 from random import shuffle
-from game_info import RESOURCES, Quest
+from game.game_info import RESOURCES, Quest, SCORE_PER_VP
 
 # Player state class
 class Player():
@@ -32,7 +32,6 @@ class Player():
         # self.plotQuests = [] # Completed plot quests
         # self.intrigues = []
         self.agents = numAgents
-        # self.maxAgents = numAgents # THis should be a property of the game state, not the players state
 
     def getQuest(self, quest: Quest):
         '''
@@ -68,13 +67,16 @@ class Player():
                              Use 'receiveQuest' or 'receive Intrigue', respectively.")
         if number <= 0:
             raise ValueError("Cannot receive nonnegative resource count.")
+        assert isinstance(number, int)
         
         self.resources[resource] += number
 
-    def getAgent(self):
-        '''Receive an additional agent (for future use).'''
-        self.maxAgents += 1
-        self.agents += 1
+    # This may need to be uncommented if we add the plot quest 
+    # or building that gives an extra agent
+    # def getAgent(self):
+    #     '''Receive an additional agent (for future use).'''
+    #     self.maxAgents += 1
+    #     self.agents += 1
 
     def returnAgents(self):
         '''Return all of this player's agents.'''
@@ -91,26 +93,27 @@ class Player():
             if quest.requirements[resource] > self.resources[resource]:
                 validCompletion = False
                 
-        if validCompletion:
-            for resource,number in quest.requirements.items():
-                self.resources[resource] -= number
-            for resource,number in quest.rewards.items():
-                if resource not in RESOURCES:
-                    raise ValueError("Invalid resource type.")
-                elif resource == "Q":
-                    # TODO: Implement this. somehow access gamestate 
-                    raise Exception("Not yet implemented.")
-                elif resource == "I":
-                    # TODO (later version): Implement this
-                    raise Exception("This is impossible! Intrigue cards do not exist yet!")
-                else:
-                    self.resources[resource] += number
-
-            self.completedQuests.append(quest)
-            self.activeQuests.remove(quest)
-
-        else:
+        if not validCompletion:
             raise ValueError("Do not have enough resources to complete this quest.")
+        
+        for resource,number in quest.requirements.items():
+            self.resources[resource] -= number
+        for resource,number in quest.rewards.items():
+            if resource not in RESOURCES:
+                raise ValueError("Invalid resource type.")
+            elif resource == "Q":
+                # TODO: Implement this. somehow access gamestate 
+                raise Exception("Not yet implemented.")
+            elif resource == "I":
+                # TODO (later version): Implement this
+                raise Exception("This is impossible! Intrigue cards do not exist yet!")
+            else:
+                self.resources[resource] += number
+
+        # TODO (future): If plot quest, append to completed plot quests
+        self.completedQuests.append(quest)
+        self.activeQuests.remove(quest)
+
         
         # Check that all resource counts are still nonnegative
         for resourceNumber in self.resources.values():
@@ -143,20 +146,28 @@ class Player():
         #   to punish the agent for giving other players
         #   free stuff. Would need to code it up in a 
         #   non-circular way though.
-        score = 0.
+
+        # 'Score' here represents number of turns' worth of resources acquired
+        score = 0. 
         for resource,number in self.resources.items():
-            if resource in ["Purple", "White", "VP"]:
+            if resource in ["Purple", "White"]:
                 score += number 
             elif resource in ["Orange", "Black"]:
                 score += number / 2.
             elif resource == "Gold":
                 score += number / 4.
+            elif resource == "VP":
+                score += number * SCORE_PER_VP # TODO: Estimate value of a VP
             else:
                 raise ValueError("Invalid resource type.")
 
+        # Active quests
+        score += len(self.activeQuests) / 2
+        # TODO: Maybe increase slightly for lord-card-aligned quests? to 0.75 or smth?
+
         for quest in self.completedQuests:
             if quest.type in self.lordCard:
-                score += 4 
+                score += 4 * SCORE_PER_VP
             # TODO (later version): add check for lordCard = "Buildings"
 
         return score 

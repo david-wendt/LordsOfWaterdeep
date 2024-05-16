@@ -1,5 +1,12 @@
 from collections import namedtuple
 
+SCORE_PER_VP = 0.5 
+# TODO: Make sure this is not too low.
+# 'score' here means 'one turn's worth of value'
+# and at the end of the game you can get 2VP/turn.
+# However, we need to make sure that completing a quest
+# increases total score
+
 # Define resources
 RESOURCES = [
     "VP", # Victory points

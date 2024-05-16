@@ -1,8 +1,8 @@
 import numpy as np
-from game_info import RESOURCES, QUESTS, QUEST_TYPES, DEFAULT_BUILDINGS, Quest, NUM_POSSIBLE_BUILDINGS
-from player import Player
-from board import BoardState
-from game import GameState
+from game.game_info import RESOURCES, QUESTS, QUEST_TYPES, DEFAULT_BUILDINGS, Quest, NUM_POSSIBLE_BUILDINGS
+from game.player import Player
+from game.board import BoardState
+from game.game import GameState
 
 def featurizeResources(resources: dict[str, int], includeVP: bool = False, includeQ: bool = False):
     '''Featurize a resource vector.'''
