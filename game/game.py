@@ -31,7 +31,7 @@ class GameState():
         self.boardState = BoardState()
 
         # Check that we have a valid number of players
-        assert numPlayers >= 2 and numPlayers <= 5
+        assert 2 <= numPlayers <= 5
         self.numPlayers = numPlayers
 
         # Set default player names
