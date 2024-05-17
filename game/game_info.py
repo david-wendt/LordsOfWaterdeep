@@ -7,6 +7,10 @@ SCORE_PER_VP = 0.5
 # However, we need to make sure that completing a quest
 # increases total score
 
+# Seems like the intended value is 0.25 (based on analysis here https://docs.google.com/spreadsheets/d/1rGbUNVHCKTy-D7s4yezfK91vA1HQFlCmWWY78Ize7xY/edit#gid=0
+# to make the numbers work out for various quest categories), so 
+# I think I'm happy upping it to 0.5 to incentivize quest completion
+
 # Define resources
 RESOURCES = [
     "VP", # Victory points
