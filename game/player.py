@@ -1,5 +1,4 @@
-from random import shuffle
-from game.game_info import RESOURCES, Quest, SCORE_PER_VP
+from game.game_info import *
 
 # Player state class
 class Player():
@@ -16,20 +15,11 @@ class Player():
         self.name = name 
         self.lordCard = lordCard
 
-        self.resources = {
-            "Purple": 0,
-            "White": 0,
-            "Black": 0,
-            "Orange": 0,
-            "Gold": 0,
-            "VP": 0
-        }
-        for resource in self.resources:
-            assert resource in RESOURCES
+        self.resources = Resources()
 
         self.activeQuests = []
         self.completedQuests = []
-        # self.plotQuests = [] # Completed plot quests
+        # self.completedPlotQuests = [] # Completed plot quests
         # self.intrigues = []
         self.agents = numAgents
 

@@ -48,6 +48,10 @@ class BoardState():
         to being occupied by the player named playerName.'''
         self.buildingStates[building] = playerName
 
+    def chooseQuest(self, quest_idx):
+        quest = self.availableQuests[quest_idx]
+        self.availableQuests[quest_idx] = self.drawQuest()
+        return quest 
 
 def main():
     # Test the quest stack

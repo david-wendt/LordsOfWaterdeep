@@ -1,4 +1,14 @@
 from collections import namedtuple
+from dataclasses import dataclass
+
+# Defining constants so we can autocomplete
+VP = "VP"
+Q = "Q"
+WIZARD = "Wizard"
+CLERIC = "Cleric"
+ROGUE = "Rogue"
+FIGHTER = "Fighter"
+GOLD = "Gold"
 
 SCORE_PER_VP = 0.5 
 # TODO: Make sure this is not too low.
@@ -13,52 +23,46 @@ SCORE_PER_VP = 0.5
 
 # Define resources
 RESOURCES = [
-    "VP", # Victory points
-    "Q", # Quest cards (as rewards to be obtained)
-    # "I", # Intrigue cards (as rewards to be obtained) # TODO (later versions): Uncomment this
-    "Purple", # Wizard item, i.e. purple cubes
-    "White", # Cleric item, i.e. white cubes
-    "Black", # Rogue item, i.e. black cubes
-    "Orange", # Fighter item, i.e. orange cubes
-    "Gold", # Gold
+    VP, # Victory points
+    Q, # Quest cards (as rewards to be obtained)
+    # I, # Intrigue cards (as rewards to be obtained) # TODO (later versions): Uncomment this
+    WIZARD, # Wizard item, i.e. purple cubes
+    CLERIC, # Cleric item, i.e. white cubes
+    ROGUE, # Rogue item, i.e. black cubes
+    FIGHTER, # Fighter item, i.e. orange cubes
+    GOLD, # Gold
 ]
 
 # Define all quest types
-QUEST_TYPES = ["Arcana", "Piety", "Skullduggery", "Warfare", "Commerce"]
+QUEST_TYPES = {
+    "Arcana": WIZARD, 
+    "Piety": CLERIC, 
+    "Skullduggery": ROGUE, 
+    "Warfare": FIGHTER, 
+    "Commerce": GOLD
+}
 
+@dataclass 
+class Resources: 
+    ''' Class representing a resource bundle '''
+    wizards: int = 0
+    clerics: int = 0
+    fighters: int = 0
+    rogues: int = 0
+    VPs: int = 0
+    quests: int = 0
+    intrigues: int = 0
 
-# Define some constants for use in creating fake quests
-QUEST_TYPE_RESOURCES = ["Purple", "White", "Black", "Orange", "Gold"]
-ONE_MOVE_RESOURCES = [1, 1, 2, 2, 4]
-
-
-# Define the quest type (i.e. Python type not in-game type) as a namedtuple
-Quest = namedtuple("Quest", "name type requirements rewards")
-
-
-# Fake quests which can be completed in one move
-# QUESTS = [
-#     Quest("Simple Warfare", "Warfare", {"Orange": 2}, {"VP": 4}),
-#     Quest("Simple Skullduggery", "Skullduggery", {"Black": 2}, {"VP": 4}),
-#     Quest("Simple Piety", "Piety", {"White": 1}, {"VP": 4}),
-#     Quest("Simple Arcana", "Arcana", {"Purple": 1}, {"VP": 4}),
-#     Quest("Simple Commerce", "Commerce", {"Gold": 4}, {"VP": 4}),
-# ]
+@dataclass
+class Quest:
+    ''' Class representing a quest '''
+    name: str 
+    type: str 
+    requirements: Resources 
+    rewards: Resources 
 
 # Fake quests which can be completed in two moves
 QUESTS = []
-for i,type1 in enumerate(QUEST_TYPES):
-    for j,type2 in enumerate(QUEST_TYPES):  
-        if i == j:
-            resources = {QUEST_TYPE_RESOURCES[i]: 2 * ONE_MOVE_RESOURCES[i]}
-        else:
-            resources = {QUEST_TYPE_RESOURCES[i]: ONE_MOVE_RESOURCES[i],
-                         QUEST_TYPE_RESOURCES[j]: ONE_MOVE_RESOURCES[j]}
-        QUESTS.append(Quest(
-            type1 + " + " + type2,
-            type1, resources, 
-            {"VP": 8}
-        ))
 
 
 # Define number of agents per player as a function of number of players
@@ -90,26 +94,27 @@ for i,type1 in enumerate(QUEST_TYPES):
 # LORD_CARDS.append("Buildings")
 
 
+
 # Define all buildings
-DEFAULT_BUILDINGS = [ 
+DEFAULT_BUILDINGS = {
     # TODO: Temporary 3 cliffwatch spaces should all give 2 gold?
     #       Or maybe for now, one spot which draws a quest, and 
     #       a different one which resets then draws?
 
     # TODO (later) uncomment the below
     # TODO (later) make the cliffwatch spaces correct (i.e. add intrigue)
-    "Purple", # Blackstaff Tower (for Wizards)
-    "Orange", # Field of Triumph (for Fighters)
-    "White", # The Plinth (for Clerics)
-    "Black", # The Grinning Lion Tavern (for Rogues)
-    "Gold", # Aurora's Realms Shop (for Gold)
+    "Blackstaff Tower": WIZ, # Blackstaff Tower (for Wizards)
+    "Field of Triumph", # Field of Triumph (for Fighters)
+    "The Plinth", # The Plinth (for Clerics)
+    "The Grinning Lion Tavern", # The Grinning Lion Tavern (for Rogues)
+    "Aurora's Realms Shop", # Aurora's Realms Shop (for Gold)
     "Quest", # Cliffwatch Inn (for Quests)
     # "Castle", # Castle Waterdeep (for Castle + Intrigue)
     # "Builder", # Builder's Hall (for buying Buildings)
     # "Waterdeep1", # Waterdeep Harbor, first slot (for playing Intrigue)
     # "Waterdeep2", # Waterdeep Harbor, second slot (for playing Intrigue)
     # "Waterdeep3", # Waterdeep Harbor, third slot (for playing Intrigue)
-]
+}
 
 # TODO (later): change the below to add all empty building slots
 NUM_POSSIBLE_BUILDINGS = len(DEFAULT_BUILDINGS)
