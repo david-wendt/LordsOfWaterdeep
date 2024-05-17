@@ -1,5 +1,5 @@
 from random import shuffle
-from game.game_info import DEFAULT_BUILDINGS, QUESTS, Quest
+from game.game_info import *
 
 class BoardState():
     '''Class to represent the state of the board itself 
@@ -10,8 +10,10 @@ class BoardState():
         and initializes all buildings states.
         '''
         # Create the quest stack
-        self.questStack = QUESTS.copy()
+        self.questStack = list(QUESTS).copy()
         shuffle(self.questStack)
+
+        self.intrigueStack = list(INTRIGUES)
 
         # Initialize building occupation states.
         # Will be None when unoccupied, player.name when occupied 
@@ -35,6 +37,16 @@ class BoardState():
             The top quest from the quest stack.
         '''
         return self.questStack.pop()
+    
+    def drawIntrigue(self) -> str: # TODO: Change return type depending on intrigue card implementation
+        '''
+        Draw the top quest from the intrigue card stack,
+        removing it from the stack in the process.
+        
+        Returns: 
+            The top intrigue card from the intrigue card stack.
+        '''
+        return self.intrigueStack.pop()
     
     def printQuestStack(self) -> None:
         '''Debug function for printing the quest stack.'''

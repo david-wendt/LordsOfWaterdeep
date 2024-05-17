@@ -15,12 +15,14 @@ class Player():
         self.name = name 
         self.lordCard = lordCard
 
-        self.resources = Resources()
+        self.resources = Resources() # Inlcudes VPs!
+        # NOT using Quests/Intrigues in here though
 
         self.activeQuests = []
         self.completedQuests = []
-        # self.completedPlotQuests = [] # Completed plot quests
-        # self.intrigues = []
+        # TODO (later): uncomment below
+        # self.completedPlotQuests = [] # Completed plot quests 
+        self.intrigues = []
         self.agents = numAgents
 
     def getQuest(self, quest: Quest):
@@ -42,24 +44,34 @@ class Player():
         # '''
     #     self.intrigues.append(intrigue)
 
-    def getResource(self, resource: str, number: int):
-        '''
-        Receive some number of resources of the same type.
-
-        Args: 
-            resource: the type of resource.
-            number: the number of that resource type received.
-        '''
-        if resource not in RESOURCES:
-            raise ValueError("Invalid resource type.")
-        if resource in ["Q", "I"]:
-            raise ValueError("Cannot receive quests or intrigue cards with this function. \
-                             Use 'receiveQuest' or 'receive Intrigue', respectively.")
-        if number <= 0:
-            raise ValueError("Cannot receive nonnegative resource count.")
-        assert isinstance(number, int)
+    def getResources(self, resources: Resources):
+        ''' Receive a resource bundle `resources` '''
+        self.resources.clerics += resources.clerics
+        self.resources.wizards += resources.wizards
+        self.resources.rogues += resources.rogues
+        self.resources.fighters += resources.fighters
+        self.resources.gold += resources.gold
+        self.resources.VPs += resources.VPs
         
-        self.resources[resource] += number
+        for _ in range(resources.intrigues):
+            raise NotImplementedError # Draw intrigue 
+        
+        for _ in range(resources.quests):
+            raise NotImplementedError # Draw quest 
+    
+    def removeResources(self, resources: Resources):
+        if resources.intrigues != 0 or resources.quests != 0 or resources.VPs != 0:
+            raise ValueError("Cannot remove intrigues or quests or VPs!")
+        
+        negResources = Resources(
+            wizards= -resources.wizards,
+            clerics= -resources.clerics,
+            fighters= -resources.fighters,
+            rogues= -resources.rogues,
+            gold= -resources.gold,
+        )
+
+        self.getResources(negResources)
 
     # This may need to be uncommented if we add the plot quest 
     # or building that gives an extra agent
@@ -72,42 +84,45 @@ class Player():
         '''Return all of this player's agents.'''
         self.agents = self.maxAgents
         
+    def isValidQuestCompletion(self, quest: Quest):
+        return (
+            quest.requirements.wizards <= self.resources.wizards and
+            quest.requirements.clerics <= self.resources.clerics and
+            quest.requirements.fighters <= self.resources.fighters and
+            quest.requirements.rogues <= self.resources.rogues and
+            quest.requirements.gold <= self.resources.gold 
+        )
+    
+    def validateResources(self):
+        return (
+            0 <= self.resources.wizards and
+            0 <= self.resources.clerics and
+            0 <= self.resources.fighters and
+            0 <= self.resources.rogues and
+            0 <= self.resources.gold and 
+            0 <= self.resources.VPs and 
+            0 == self.resources.quests and 
+            0 == self.resources.intrigues
+        )
+
     def completeQuest(self, quest: Quest):
         # Make sure the agent has this quest
         if quest not in self.activeQuests:
             raise ValueError("This agent does not have this quest.")
 
-        # Check if the quest can be completed
-        validCompletion = True
-        for resource in quest.requirements:
-            if quest.requirements[resource] > self.resources[resource]:
-                validCompletion = False
-                
-        if not validCompletion:
+        # Check if the quest can be completed                
+        if not self.isValidQuestCompletion(quest):
             raise ValueError("Do not have enough resources to complete this quest.")
         
-        for resource,number in quest.requirements.items():
-            self.resources[resource] -= number
-        for resource,number in quest.rewards.items():
-            if resource not in RESOURCES:
-                raise ValueError("Invalid resource type.")
-            elif resource == "Q":
-                # TODO: Implement this. somehow access gamestate 
-                raise Exception("Not yet implemented.")
-            elif resource == "I":
-                # TODO (later version): Implement this
-                raise Exception("This is impossible! Intrigue cards do not exist yet!")
-            else:
-                self.resources[resource] += number
+        self.removeResources(quest.requirements)
+        self.getResources(quest.rewards)
 
         # TODO (future): If plot quest, append to completed plot quests
         self.completedQuests.append(quest)
         self.activeQuests.remove(quest)
 
-        
         # Check that all resource counts are still nonnegative
-        for resourceNumber in self.resources.values():
-            assert resourceNumber >= 0
+        self.validateResources()
     
     def score(self):
         '''Compute an RL agent's score.
@@ -138,18 +153,14 @@ class Player():
         #   non-circular way though.
 
         # 'Score' here represents number of turns' worth of resources acquired
-        score = 0. 
-        for resource,number in self.resources.items():
-            if resource in ["Purple", "White"]:
-                score += number 
-            elif resource in ["Orange", "Black"]:
-                score += number / 2.
-            elif resource == "Gold":
-                score += number / 4.
-            elif resource == "VP":
-                score += number * SCORE_PER_VP # TODO: Estimate value of a VP
-            else:
-                raise ValueError("Invalid resource type.")
+        score = (
+            self.resources.clerics
+            + self.resources.wizards
+            + self.resources.fighters / 2.
+            + self.resources.rogues / 2.
+            + self.resources.gold / 4.
+            + self.resources.VPs * SCORE_PER_VP
+        )
 
         # Active quests
         score += len(self.activeQuests) / 2
