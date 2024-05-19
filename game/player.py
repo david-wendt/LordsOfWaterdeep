@@ -1,8 +1,11 @@
 from .game_info import *
+from ..agents.agent import Agent
 
 # Player state class
 class Player():
-    def __init__(self, name: str, numAgents: int, 
+    def __init__(self, name: str, 
+                 agent: Agent,
+                 numAgents: int, 
                  lordCard: tuple[str]) -> None:
         '''
         Initialize the player's name, resources, agents, and VPs.
@@ -13,6 +16,7 @@ class Player():
             lord: the lord card (i.e. secret identity) given to the player 
         '''
         self.name = name 
+        self.agent = agent
         self.lordCard = lordCard
 
         self.resources = Resources() # Inlcudes VPs!
@@ -174,3 +178,6 @@ class Player():
             # TODO (later version): add check for lordCard = "Buildings"
 
         return score 
+    
+    def selectMove(self, state, actions):
+        return self.agent.act(state, actions)
