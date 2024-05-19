@@ -3,7 +3,7 @@
 import torch 
 from torch import nn
 
-from ..agent import Agent
+from agents.agent import Agent
 
 class DeepQNet(nn.Module):
     def __init__(self):

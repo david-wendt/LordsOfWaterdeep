@@ -1,14 +1,12 @@
-''' TODO: Write a class here to take user input to play the game. '''
-
-from ..agent import Agent
+from agents.agent import Agent
 
 class ManualAgent(Agent):
     def act(self, state, actions) -> int:
-        print('Game state:\n', state)
+        print('Game state:\n', state.displayGame())
         print('Actions available:\n')
         for i,action in enumerate(actions):
             print("\t",i,":",action)
-        choice = ""
+        choice = "-1"
         while not 0 <= int(choice) < len(actions):
-            choice = input("Choose an action (enter index)")
-        return choice 
+            choice = input("Choose an action (enter index): ")
+        return int(choice)

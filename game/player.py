@@ -1,5 +1,5 @@
-from .game_info import *
-from ..agents.agent import Agent
+from game.game_info import *
+from agents.agent import Agent
 
 # Player state class
 class Player():
@@ -41,6 +41,16 @@ class Player():
             quest: the quest to receive.
         '''
         self.activeQuests.append(quest)
+
+
+    def getIntrigue(self, intrigue: str):
+        '''
+        Receive an intrigue card.
+
+        Args: 
+            intrigue: the intrigue card to receive.
+        '''
+        self.intrigues.append(intrigue)
 
     # TODO (Later version): uncomment this
     # def getIntrigue(self, intrigue: Intrigue):
@@ -98,6 +108,9 @@ class Player():
             quest.requirements.rogues <= self.resources.rogues and
             quest.requirements.gold <= self.resources.gold 
         )
+    
+    def completableQuests(self):
+        return [quest for quest in self.activeQuests if self.isValidQuestCompletion(quest)]
     
     def validateResources(self):
         return (

@@ -1,7 +1,8 @@
 from random import shuffle
-from .game_info import Quest, LORD_CARDS, agentsPerPlayer
-from .player import Player
-from .board import BoardState
+from game.game_info import *
+from game.player import Player
+from game.board import BoardState
+from agents import init_agent
 
 # Class to control the flow of the game, focused on turn progression and move 
 # options. Broadly, this class handles anything involving the game state and
@@ -15,7 +16,7 @@ class GameState():
     options. 
     '''
     def __init__(self, numPlayers: int = 3, numRounds: int = 8, 
-                 playerNames = None):
+                 playerNames=None, playerAgents=None):
         '''
         Initialize the game state and players.
 
@@ -35,41 +36,48 @@ class GameState():
         self.numPlayers = numPlayers
 
         # Set default player names
-        self.playerNames = playerNames
-        if playerNames == None:
+        if playerNames is None:
             self.playerNames = [
                 "PlayerOne", "PlayerTwo", 
                 "PlayerThree", "PlayerFour",
                 "PlayerFive"
             ][:numPlayers]
-        
+        else:
+            assert len(playerNames) == self.numPlayers
+            self.playerNames = playerNames
+
         if len(self.playerNames) != len(set(self.playerNames)):
             raise ValueError("Need to have unique player names")
+
+        if playerAgents is None:
+            self.playerAgents = ["Manual"] * self.numPlayers
+        else:
+            assert len(playerAgents) == self.numPlayers
+            self.playerAgents = playerAgents
         
         # Shuffle the lord cards
         shuffled_lord_cards = LORD_CARDS.copy()
         shuffle(shuffled_lord_cards)
 
         # Initialize the players
-        self.players = []
-        for i in range(numPlayers):
-            self.players.append(Player(self.playerNames[i], agentsPerPlayer(numPlayers),
-                                       shuffled_lord_cards[i]))
-
+        self.players = [Player(
+            name=self.playerNames[i],
+            agent=init_agent.init_agent(self.playerAgents[i]),
+            numAgents=agentsPerPlayer(numPlayers),
+            lordCard=shuffled_lord_cards[i]
+        ) for i in range(numPlayers)]
 
         # This is not only a list of players, but 
         # also represents the turn order. It will 
         # be reordered each turn.
         shuffle(self.players)
 
-        # Deal quest cards to players
-        for _ in range(2):
-            for player in self.players:
+        # Deal quest/intrigue cards to players
+        for i,player in enumerate(self.players):
+            for _ in range(2):
                 player.getQuest(self.boardState.drawQuest())
-
-        # TODO (later version): Deal intrigue cards to players
-
-        # TODO: Deal gold to players
+                player.getIntrigue(self.boardState.drawIntrigue())
+            player.getResources(Resources(gold = 4 + i))
 
         # Finally, start a new round (at this stage, just 
         # decrements roundsLeft and places VPs on
@@ -99,14 +107,31 @@ class GameState():
         '''Take a single turn in the turn order.'''
         # TODO: Implement 
         currentPlayer = self.players[0]
-        possibleMoves = [] # Fill this 
-        move = currentPlayer.selectMove(possibleMoves) # Implement this
-        # Execute this move. Maybe have a different function for 
-        # selecting a building to play at vs other sub-selections
-        # such as a quest to complete or an intrigue card to play?
+        possibleMoves = [building for building in self.boardState.buildings 
+                         if building.occupier is None] 
+        move_idx = currentPlayer.selectMove(self, possibleMoves) # Implement this
+        building = possibleMoves[move_idx]
+
+        # Secondary choices (quest, intrigue card)
+        if building.rewards.quests > 0:
+            for _ in range(building.rewards.quests):
+                raise NotImplementedError("Choose a quest")
+            building.rewards.quests = 0
+
+        if building.rewards.intrigues > 0:
+            for _ in range(building.rewards.intrigues):
+                raise NotImplementedError("Choose an intrigue")
+            building.rewards.intrigues = 0
+        
+        if building.specialRewards == "Play intrigue": # maybe make this a list of str intead of str
+            raise NotImplementedError("Choose an intrigue to play")
+        
+        completableQuests = currentPlayer.completableQuests()
+        if completableQuests:
+            move_idx = currentPlayer.selectMove(self, completableQuests) # Implement this
 
         # Reorder turn order to show that the player has moved.
-        self.players = self.players[1:] + currentPlayer
+        self.players = self.players[1:] + [currentPlayer]
 
     def runGame(self):
         '''Umbrella function to run the game.'''
