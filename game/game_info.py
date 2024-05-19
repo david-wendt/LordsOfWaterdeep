@@ -42,6 +42,26 @@ class Resources:
     quests: int = 0
     intrigues: int = 0
 
+    def __repr__(self) -> str:
+        res = ""
+        if self.VPs > 0:
+            res += f"VPs: {self.VPs}, "
+        if self.wizards > 0:
+            res += f"wizards: {self.wizards}, "
+        if self.clerics > 0:
+            res += f"clerics: {self.clerics}, "
+        if self.fighters > 0:
+            res += f"fighters: {self.fighters}, "
+        if self.rogues > 0:
+            res += f"rogues: {self.rogues}, "
+        if self.gold > 0:
+            res += f"gold: {self.gold}, "
+        if self.quests > 0:
+            res += f"quests: {self.quests}, "
+        if self.intrigues > 0:
+            res += f"intrigues: {self.intrigues}, "
+        return res
+
 @dataclass
 class Quest:
     ''' Class representing a quest '''
@@ -50,23 +70,33 @@ class Quest:
     requirements: Resources 
     rewards: Resources 
 
+    def __repr__(self) -> str:
+        return f"{self.name} ({self.type}):\n\t\tRequires {self.requirements}\n\t\tRewards {self.rewards}"
+
+@dataclass
+class Building:
+    name: str 
+    rewards: Resources
+    specialRewards: str = ""
+    occupier: str = None
+
 # Define all buildings
-DEFAULT_BUILDINGS = {
-    "Blackstaff Tower": Resources(wizards=1), # Blackstaff Tower (for Wizards)
-    "Field of Triumph": Resources(fighters=2), # Field of Triumph (for Fighters)
-    "The Plinth": Resources(clerics=1), # The Plinth (for Clerics)
-    "The Grinning Lion Tavern": Resources(rogues=2), # The Grinning Lion Tavern (for Rogues)
-    "Aurora's Realms Shop": Resources(gold=4), # Aurora's Realms Shop (for Gold)
-    "Cliffwatch Inn, gold": Resources(gold=2, quests=1), # Cliffwatch Inn, gold spot (for Quests)
-    "Cliffwatch Inn, intrigue": Resources(quests=1, intrigues=1), # Cliffwatch Inn, intrigue spot (for Quests)
-    "Cliffwatch Inn, reset": Resources(quests=1), # Cliffwatch Inn, reset quest spot (for Quests)
-    "Castle": Resources(intrigues=1), # Castle Waterdeep (for Castle + Intrigue)
-    "Waterdeep, 1": Resources(), # Waterdeep Harbor, first slot (for playing Intrigue)
-    "Waterdeep, 2": Resources(), # Waterdeep Harbor, second slot (for playing Intrigue)
-    "Waterdeep, 3": Resources(), # Waterdeep Harbor, third slot (for playing Intrigue)
+DEFAULT_BUILDINGS = [
+    Building("Blackstaff Tower", Resources(wizards=1)), # Blackstaff Tower (for Wizards)
+    Building("Field of Triumph", Resources(fighters=2)), # Field of Triumph (for Fighters)
+    Building("The Plinth", Resources(clerics=1)), # The Plinth (for Clerics)
+    Building("The Grinning Lion Tavern", Resources(rogues=2)), # The Grinning Lion Tavern (for Rogues)
+    Building("Aurora's Realms Shop", Resources(gold=4)), # Aurora's Realms Shop (for Gold)
+    Building("Cliffwatch Inn, gold", Resources(gold=2, quests=1)), # Cliffwatch Inn, gold spot (for Quests)
+    Building("Cliffwatch Inn, intrigue", Resources(quests=1, intrigues=1)), # Cliffwatch Inn, intrigue spot (for Quests)
+    Building("Cliffwatch Inn, reset", Resources(quests=1)), # Cliffwatch Inn, reset quest spot (for Quests)
+    Building("Castle", Resources(intrigues=1)), # Castle Waterdeep (for Castle + Intrigue)
+    Building("Waterdeep, 1", Resources(), 'Play intrigue'), # Waterdeep Harbor, first slot (for playing Intrigue)
+    Building("Waterdeep, 2", Resources(), 'Play intrigue'), # Waterdeep Harbor, second slot (for playing Intrigue)
+    Building("Waterdeep, 3", Resources(), 'Play intrigue'), # Waterdeep Harbor, third slot (for playing Intrigue)
     # TODO (later) uncomment Builder's Hall
     # "Builder's Hall": Resources(), # Builder's Hall (for buying Buildings)
-}
+]
 
 # TODO (later): change the below to add all empty building slots
 NUM_POSSIBLE_BUILDINGS = len(DEFAULT_BUILDINGS)

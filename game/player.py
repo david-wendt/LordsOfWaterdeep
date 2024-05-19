@@ -1,8 +1,11 @@
 from game.game_info import *
+from agents.agent import Agent
 
 # Player state class
 class Player():
-    def __init__(self, name: str, numAgents: int, 
+    def __init__(self, name: str, 
+                 agent: Agent,
+                 numAgents: int, 
                  lordCard: tuple[str]) -> None:
         '''
         Initialize the player's name, resources, agents, and VPs.
@@ -13,6 +16,7 @@ class Player():
             lord: the lord card (i.e. secret identity) given to the player 
         '''
         self.name = name 
+        self.agent = agent
         self.lordCard = lordCard
 
         self.resources = Resources() # Inlcudes VPs!
@@ -24,6 +28,10 @@ class Player():
         # self.completedPlotQuests = [] # Completed plot quests 
         self.intrigues = []
         self.agents = numAgents
+        self.maxAgents = numAgents # Done like this because player objects have no access to game state
+
+    def __repr__(self):
+        return f"Player `{self.name}`\n\tResources: {self.resources}"
 
     def getQuest(self, quest: Quest):
         '''
@@ -33,6 +41,16 @@ class Player():
             quest: the quest to receive.
         '''
         self.activeQuests.append(quest)
+
+
+    def getIntrigue(self, intrigue: str):
+        '''
+        Receive an intrigue card.
+
+        Args: 
+            intrigue: the intrigue card to receive.
+        '''
+        self.intrigues.append(intrigue)
 
     # TODO (Later version): uncomment this
     # def getIntrigue(self, intrigue: Intrigue):
@@ -73,12 +91,10 @@ class Player():
 
         self.getResources(negResources)
 
-    # This may need to be uncommented if we add the plot quest 
-    # or building that gives an extra agent
-    # def getAgent(self):
-    #     '''Receive an additional agent (for future use).'''
-    #     self.maxAgents += 1
-    #     self.agents += 1
+    def getAgent(self):
+        '''Receive an additional agent (for future use).'''
+        self.maxAgents += 1
+        self.agents += 1
 
     def returnAgents(self):
         '''Return all of this player's agents.'''
@@ -92,6 +108,9 @@ class Player():
             quest.requirements.rogues <= self.resources.rogues and
             quest.requirements.gold <= self.resources.gold 
         )
+    
+    def completableQuests(self):
+        return [quest for quest in self.activeQuests if self.isValidQuestCompletion(quest)]
     
     def validateResources(self):
         return (
@@ -172,3 +191,6 @@ class Player():
             # TODO (later version): add check for lordCard = "Buildings"
 
         return score 
+    
+    def selectMove(self, state, actions):
+        return self.agent.act(state, actions)

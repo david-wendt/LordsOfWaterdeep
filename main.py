@@ -1,1 +1,4 @@
-# TODO: run game and print state every turn
+from game.game import main 
+
+if __name__ == "__main__":
+    main()

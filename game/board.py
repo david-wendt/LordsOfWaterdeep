@@ -18,15 +18,30 @@ class BoardState():
         # Initialize building occupation states.
         # Will be None when unoccupied, player.name when occupied 
         # with one of player's agents.
-        self.buildingStates = {building: None for building in DEFAULT_BUILDINGS}
+        self.buildings = DEFAULT_BUILDINGS.copy()
 
         # Initialize the four available quests at Cliffwatch Inn
         self.availableQuests = [self.drawQuest() for _ in range(4)]
 
+    def __repr__(self):
+        res = "Buildings:\n"
+        for building in self.buildings:
+            res += f"\t{building.name}: "
+            if building.occupier is None:
+                res += "unoccupied.\n"
+            else:
+                res += f"{building.occupier}.\n"
+
+        res += "Quests (at Cliffwatch Inn):\n"
+        for quest in self.availableQuests:
+            res += f"\t{quest}\n"
+
+        return res 
+
     def clearBuildings(self):
         '''Clears all buildings to their unoccupied states.'''
-        for building in self.buildingStates:
-            self.buildingStates[building] = None
+        for building in self.buildings:
+            building.occupier = None
     
     def drawQuest(self) -> Quest:
         '''
@@ -55,10 +70,15 @@ class BoardState():
         for i in range(len(self.questStack)):
             print(i+1, questStackCopy.pop())
 
-    def occupyBuilding(self, building: str, playerName: str):
+    def occupyBuilding(self, buildingName: str, playerName: str):
         '''Change the occupation state of building from 'None'
         to being occupied by the player named playerName.'''
-        self.buildingStates[building] = playerName
+
+        # Is there a better way to do this??? I don't like doing a full search 
+        # when it could be a lookup
+        for building in self.buildings:
+            if building.name == buildingName:
+                building.occupier = playerName
 
     def chooseQuest(self, quest_idx):
         quest = self.availableQuests[quest_idx]
