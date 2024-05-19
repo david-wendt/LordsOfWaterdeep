@@ -1,5 +1,5 @@
 from random import shuffle
-from game.game_info import *
+from .game_info import *
 
 class BoardState():
     '''Class to represent the state of the board itself 
@@ -22,6 +22,21 @@ class BoardState():
 
         # Initialize the four available quests at Cliffwatch Inn
         self.availableQuests = [self.drawQuest() for _ in range(4)]
+
+    def __repr__(self):
+        res = "Buildings:\n"
+        for building,occupier in self.buildingStates.items():
+            res += f"\t{building}:\t"
+            if occupier is None:
+                res += "unoccupied.\n"
+            else:
+                res += f"{occupier}.\n"
+
+        res += "Quests (at Cliffwatch Inn):\n"
+        for quest in self.availableQuests:
+            res += f"\t{quest}\n"
+
+        return res 
 
     def clearBuildings(self):
         '''Clears all buildings to their unoccupied states.'''

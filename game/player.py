@@ -1,4 +1,4 @@
-from game.game_info import *
+from .game_info import *
 
 # Player state class
 class Player():
@@ -24,6 +24,10 @@ class Player():
         # self.completedPlotQuests = [] # Completed plot quests 
         self.intrigues = []
         self.agents = numAgents
+        self.maxAgents = numAgents # Done like this because player objects have no access to game state
+
+    def __repr__(self):
+        return f"Player `{self.name}`\n\tResources: {self.resources}"
 
     def getQuest(self, quest: Quest):
         '''
@@ -73,12 +77,10 @@ class Player():
 
         self.getResources(negResources)
 
-    # This may need to be uncommented if we add the plot quest 
-    # or building that gives an extra agent
-    # def getAgent(self):
-    #     '''Receive an additional agent (for future use).'''
-    #     self.maxAgents += 1
-    #     self.agents += 1
+    def getAgent(self):
+        '''Receive an additional agent (for future use).'''
+        self.maxAgents += 1
+        self.agents += 1
 
     def returnAgents(self):
         '''Return all of this player's agents.'''

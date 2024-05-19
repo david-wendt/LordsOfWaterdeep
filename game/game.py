@@ -1,7 +1,7 @@
 from random import shuffle
-from game.game_info import Quest, LORD_CARDS, agentsPerPlayer
-from game.player import Player
-from game.board import BoardState
+from .game_info import Quest, LORD_CARDS, agentsPerPlayer
+from .player import Player
+from .board import BoardState
 
 # Class to control the flow of the game, focused on turn progression and move 
 # options. Broadly, this class handles anything involving the game state and
@@ -42,20 +42,17 @@ class GameState():
                 "PlayerThree", "PlayerFour",
                 "PlayerFive"
             ][:numPlayers]
-
-        if len(playerNames) != len(set(playerNames)):
+        
+        if len(self.playerNames) != len(set(self.playerNames)):
             raise ValueError("Need to have unique player names")
         
         # Shuffle the lord cards
         shuffled_lord_cards = LORD_CARDS.copy()
-        print(shuffled_lord_cards[:5])
         shuffle(shuffled_lord_cards)
-        print(shuffled_lord_cards[:5])
 
         # Initialize the players
         self.players = []
         for i in range(numPlayers):
-            print(shuffled_lord_cards[i])
             self.players.append(Player(self.playerNames[i], agentsPerPlayer(numPlayers),
                                        shuffled_lord_cards[i]))
 
@@ -118,19 +115,21 @@ class GameState():
             while self.players[0].agents >= 0:
                 self.takeTurn()
 
-            # TODO (later): reorder the players if one of them picked up the castle.
+            # TODO: reorder the players if one of them picked up the castle.
             self.newRound()
 
     def displayGame(self) -> None:
         '''Display the state of the game and players.'''
-        # TODO: Implement this to display the state of the game
-        # (I moved this from game_state to here so it can 
-        # display the player states as well)
-        # Will start textually, should (maybe) be graphically later (if we have time)
-        
-        
-        
+        print(self.boardState)
+        print("\nPLAYERS:")
+        for player in self.players:
+            print(player)     
 
 def main():
     # Test gameState
-    pass 
+    gs = GameState()
+    print('initialized gs:')
+    print(gs)
+    gs.displayGame()
+    gs.takeTurn()
+    gs.displayGame()

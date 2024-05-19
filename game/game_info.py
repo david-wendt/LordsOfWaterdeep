@@ -42,6 +42,26 @@ class Resources:
     quests: int = 0
     intrigues: int = 0
 
+    def __repr__(self) -> str:
+        res = ""
+        if self.VPs > 0:
+            res += f"VPs: {self.VPs}, "
+        if self.wizards > 0:
+            res += f"wizards: {self.wizards}, "
+        if self.clerics > 0:
+            res += f"clerics: {self.clerics}, "
+        if self.fighters > 0:
+            res += f"fighters: {self.fighters}, "
+        if self.rogues > 0:
+            res += f"rogues: {self.rogues}, "
+        if self.gold > 0:
+            res += f"gold: {self.gold}, "
+        if self.quests > 0:
+            res += f"quests: {self.quests}, "
+        if self.intrigues > 0:
+            res += f"intrigues: {self.intrigues}, "
+        return res
+
 @dataclass
 class Quest:
     ''' Class representing a quest '''
@@ -49,6 +69,9 @@ class Quest:
     type: str 
     requirements: Resources 
     rewards: Resources 
+
+    def __repr__(self) -> str:
+        return f"{self.name} ({self.type}):\n\t\tRequires {self.requirements}\n\t\tRewards {self.rewards}"
 
 # Define all buildings
 DEFAULT_BUILDINGS = {
