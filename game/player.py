@@ -1,5 +1,6 @@
 from game.game_info import *
 from agents.agent import Agent
+from agents.baseline.manual_agent import ManualAgent
 
 # Player state class
 class Player():
@@ -30,8 +31,28 @@ class Player():
         self.agents = numAgents
         self.maxAgents = numAgents # Done like this because player objects have no access to game state
 
+        self.hasCastle = False # for Castle Waterdeep
+
     def __repr__(self):
-        return f"Player `{self.name}`\n\tResources: {self.resources}"
+        res = f"\nPlayer `{self.name}`\n\tAgents remaining: {self.agents}\n\tResources: {self.resources}"
+        if self.hasCastle:
+            res += "\n\tCastle Waterdeep: Owned"
+        return res
+    
+    def _private_repr(self):
+        activeQuests = ""
+        for quest in self.activeQuests:
+            activeQuests += "\n" + str(quest)
+            
+        completedQuestNames = [
+            f"{quest.name} ({quest.type})" 
+            for quest in self.completedQuests
+        ]
+        return self.__repr__() \
+            + f"\n\tSecret Identity: {self.lordCard}" \
+            + f"\n\tIntrigues: {self.intrigues}" \
+            + f"\n\tActive Quests: {activeQuests}" \
+            + f"\n\tCompleted Quests: {completedQuestNames}"
 
     def getQuest(self, quest: Quest):
         '''
@@ -52,16 +73,6 @@ class Player():
         '''
         self.intrigues.append(intrigue)
 
-    # TODO (Later version): uncomment this
-    # def getIntrigue(self, intrigue: Intrigue):
-        # '''
-        # Receive an intrigue card.
-
-        # Args: 
-        #     intrigue: the intrigue card to receive.
-        # '''
-    #     self.intrigues.append(intrigue)
-
     def getResources(self, resources: Resources):
         ''' Receive a resource bundle `resources` '''
         self.resources.clerics += resources.clerics
@@ -71,15 +82,9 @@ class Player():
         self.resources.gold += resources.gold
         self.resources.VPs += resources.VPs
         
-        for _ in range(resources.intrigues):
-            raise NotImplementedError # Draw intrigue 
-        
-        for _ in range(resources.quests):
-            raise NotImplementedError # Draw quest 
-    
     def removeResources(self, resources: Resources):
-        if resources.intrigues != 0 or resources.quests != 0 or resources.VPs != 0:
-            raise ValueError("Cannot remove intrigues or quests or VPs!")
+        if resources.VPs != 0:
+            raise ValueError("Cannot remove VPs!")
         
         negResources = Resources(
             wizards= -resources.wizards,
@@ -119,9 +124,7 @@ class Player():
             0 <= self.resources.fighters and
             0 <= self.resources.rogues and
             0 <= self.resources.gold and 
-            0 <= self.resources.VPs and 
-            0 == self.resources.quests and 
-            0 == self.resources.intrigues
+            0 <= self.resources.VPs
         )
 
     def completeQuest(self, quest: Quest):
@@ -163,8 +166,7 @@ class Player():
         # of VP-value at endgame? )
         # This version is implemented below.
 
-        # TODO: Maybe include quests
-        # TODO (later): Maybe include intrigues?
+        # TODO: 
         # Maybe subtract sum/max/softmax of 
         #   the other player's scores? important
         #   to punish the agent for giving other players
@@ -181,8 +183,14 @@ class Player():
             + self.resources.VPs * SCORE_PER_VP
         )
 
+        # Intrigues 
+        score += len(self.intrigues) / 2.
+
+        # Castle Waterdeep
+        score += self.hasCastle / 2.
+
         # Active quests
-        score += len(self.activeQuests) / 2
+        score += len(self.activeQuests) / 2.
         # TODO: Maybe increase slightly for lord-card-aligned quests? to 0.75 or smth?
 
         for quest in self.completedQuests:
@@ -192,5 +200,7 @@ class Player():
 
         return score 
     
-    def selectMove(self, state, actions):
-        return self.agent.act(state, actions)
+    def selectMove(self, gameState, actions):
+        if isinstance(self.agent, ManualAgent):
+            print("\n\nCURRENT PLAYER:", self.name, "(manual agent) must select a move.")
+        return self.agent.act(gameState, self, actions)

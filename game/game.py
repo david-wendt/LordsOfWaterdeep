@@ -84,6 +84,11 @@ class GameState():
         # buildings at builder's hall)
         self.newRound()
 
+    def printPlayers(self):
+        print('\nPLAYERS:')
+        for i,player in enumerate(self.players):
+            print(i,player)
+
     def newRound(self):
         '''Reset the board at the beginning of each round.'''
         self.roundsLeft -= 1
@@ -103,58 +108,110 @@ class GameState():
         for player in self.players:
             player.returnAgents()
 
+        # Reorder players if one took the castle
+        playersHaveCastle = [player.hasCastle for player in self.players]
+        assert sum(playersHaveCastle) in [0,1],playersHaveCastle
+        if True in playersHaveCastle:
+            player_idx = playersHaveCastle.index(True)
+            castlePlayer = self.players[player_idx]
+            assert castlePlayer.hasCastle,(player_idx, playersHaveCastle)
+            castlePlayer.hasCastle = False 
+            self.players = self.players[player_idx:] + self.players[:player_idx]
+        
+        # Make sure nobody has the castle after reordering
+        for player in self.players:
+            assert player.hasCastle == False 
+
     def takeTurn(self):
         '''Take a single turn in the turn order.'''
-        # TODO: Implement 
         currentPlayer = self.players[0]
-        possibleMoves = [building for building in self.boardState.buildings 
-                         if building.occupier is None] 
-        move_idx = currentPlayer.selectMove(self, possibleMoves) # Implement this
+
+        # Return if you don't have any agents to play
+        if currentPlayer.agents == 0:
+            return 
+        
+        # Possible places to play an agent are unoccupied buildings
+        possibleMoves = [building for building,occupier in self.boardState.buildings.items() 
+                         if occupier is None] 
+        assert len(possibleMoves) > 0,"Issue if there are not enough buildings to play"
+        # ^^ This will happen without builder's hall in a 5-player game,
+        # or in any other game after round 4
+        
+        # If player has no intrigues, remove buildings 
+        #   where you need to play an intrigue
+        if len(currentPlayer.intrigues) == 0:
+            for building in possibleMoves:
+                if building.playIntrigue:
+                    possibleMoves.remove(building)
+
+        # Choose a building to play an agent at
+        move_idx = currentPlayer.selectMove(self, possibleMoves) 
         building = possibleMoves[move_idx]
+        self.boardState.buildings[building] = currentPlayer.name
+        currentPlayer.agents -= 1
 
         # Secondary choices (quest, intrigue card)
         if building.rewards.quests > 0:
             for _ in range(building.rewards.quests):
-                raise NotImplementedError("Choose a quest")
-            building.rewards.quests = 0
+                quest_idx = currentPlayer.selectMove(self, self.boardState.availableQuests)
+                quest = self.boardState.chooseQuest(quest_idx)
+                currentPlayer.getQuest(quest)
 
         if building.rewards.intrigues > 0:
             for _ in range(building.rewards.intrigues):
-                raise NotImplementedError("Choose an intrigue")
-            building.rewards.intrigues = 0
+                currentPlayer.getIntrigue(self.boardState.drawIntrigue())
         
-        if building.specialRewards == "Play intrigue": # maybe make this a list of str intead of str
-            raise NotImplementedError("Choose an intrigue to play")
+        if building.playIntrigue:
+            if len(currentPlayer.intrigues) == 0:
+                raise ValueError(f'Player {currentPlayer.name} has no intrigue cards to play!')
+            intrigue_idx = currentPlayer.selectMove(self, currentPlayer.intrigues)
+            intrigue = currentPlayer.intrigues.pop(intrigue_idx)
+            if intrigue == "Choice of any resource":
+                resource_options = [
+                    Resources(gold=4),
+                    Resources(fighters=2),
+                    Resources(rogues=2),
+                    Resources(wizards=1),
+                    Resources(clerics=1)
+                ]
+                resource_idx = currentPlayer.selectMove(self, resource_options)
+                currentPlayer.getResources(resource_options[resource_idx])
+            else:
+                raise ValueError(f"Unknown intrigue card: {intrigue}")
+
+        currentPlayer.getResources(building.rewards.toResources())
         
+        if building.getCastle:
+            currentPlayer.hasCastle = True 
+
+        # Optionally complete a quest
         completableQuests = currentPlayer.completableQuests()
         if completableQuests:
-            move_idx = currentPlayer.selectMove(self, completableQuests) # Implement this
+            move_idx = currentPlayer.selectMove(self, ['Do Not Complete a Quest'] + completableQuests) 
+            if move_idx > 0:
+                currentPlayer.completeQuest(completableQuests[move_idx - 1])
 
         # Reorder turn order to show that the player has moved.
         self.players = self.players[1:] + [currentPlayer]
 
-    def runGame(self):
+    def runGame(self, verbose):
         '''Umbrella function to run the game.'''
         while self.roundsLeft > 0:
             # Keep looping until a player runs out of agents
-            while self.players[0].agents >= 0:
+            while sum([player.agents for player in self.players]) > 0:
                 self.takeTurn()
+            print(f"ALL PLAYERS DONE TAKING TURNS, AGENTS EXHAUSTED." + "-" * 50)
 
-            # TODO: reorder the players if one of them picked up the castle.
+            print('about to call newRound')
             self.newRound()
+            print('done calling newRound')
 
-    def displayGame(self) -> None:
-        '''Display the state of the game and players.'''
-        print(self.boardState)
-        print("\nPLAYERS:")
-        for player in self.players:
-            print(player)     
+            if verbose:
+                print(self)
+
+    def __repr__(self) -> str:
+        return f"{self.boardState}\nPLAYERS:" + "".join([f"{player}" for player in self.players])
 
 def main():
-    # Test gameState
     gs = GameState()
-    print('initialized gs:')
-    print(gs)
-    gs.displayGame()
-    gs.takeTurn()
-    gs.displayGame()
+    gs.runGame(False)

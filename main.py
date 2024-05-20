@@ -1,4 +1,5 @@
-from game.game import main 
+from game import game
+import torch 
 
 if __name__ == "__main__":
-    main()
+    game.main()

@@ -18,19 +18,38 @@ class BoardState():
         # Initialize building occupation states.
         # Will be None when unoccupied, player.name when occupied 
         # with one of player's agents.
-        self.buildings = DEFAULT_BUILDINGS.copy()
+        self.buildings = {building: None for building in DEFAULT_BUILDINGS}
 
         # Initialize the four available quests at Cliffwatch Inn
         self.availableQuests = [self.drawQuest() for _ in range(4)]
 
+    def printBuilding(self, building):
+        res = f"{building.name} (occupier: {self.buildings[building]}): rewards"
+        extra_rewards = ""
+        if building.playIntrigue:
+            extra_rewards += "Play Intrigue"
+        if building.getCastle:
+            extra_rewards += "Castle Waterdeep"
+        
+        if building.rewards:
+            res += f" {building.rewards}"
+            if extra_rewards:
+                res += " + " + extra_rewards
+        else:
+            if extra_rewards:
+                res += " " + extra_rewards
+            else:
+                raise ValueError('Building rewards nothing!')
+        return res 
+
     def __repr__(self):
         res = "Buildings:\n"
-        for building in self.buildings:
+        for building,occupier in self.buildings.items():
             res += f"\t{building.name}: "
-            if building.occupier is None:
+            if occupier is None:
                 res += "unoccupied.\n"
             else:
-                res += f"{building.occupier}.\n"
+                res += f"{occupier}.\n"
 
         res += "Quests (at Cliffwatch Inn):\n"
         for quest in self.availableQuests:
@@ -41,7 +60,7 @@ class BoardState():
     def clearBuildings(self):
         '''Clears all buildings to their unoccupied states.'''
         for building in self.buildings:
-            building.occupier = None
+            self.buildings[building] = None
     
     def drawQuest(self) -> Quest:
         '''
@@ -53,7 +72,7 @@ class BoardState():
         '''
         return self.questStack.pop()
     
-    def drawIntrigue(self) -> str: # TODO: Change return type depending on intrigue card implementation
+    def drawIntrigue(self) -> str: # TODO (later): Change return type depending on intrigue card implementation
         '''
         Draw the top quest from the intrigue card stack,
         removing it from the stack in the process.
@@ -62,25 +81,10 @@ class BoardState():
             The top intrigue card from the intrigue card stack.
         '''
         return self.intrigueStack.pop()
-    
-    def printQuestStack(self) -> None:
-        '''Debug function for printing the quest stack.'''
-        print("Quest stack (top first):")
-        questStackCopy = self.questStack.copy()
-        for i in range(len(self.questStack)):
-            print(i+1, questStackCopy.pop())
-
-    def occupyBuilding(self, buildingName: str, playerName: str):
-        '''Change the occupation state of building from 'None'
-        to being occupied by the player named playerName.'''
-
-        # Is there a better way to do this??? I don't like doing a full search 
-        # when it could be a lookup
-        for building in self.buildings:
-            if building.name == buildingName:
-                building.occupier = playerName
 
     def chooseQuest(self, quest_idx):
+        ''' Choose available quest with index quest_idx,
+        replacing it with a new quest and returning it. '''
         quest = self.availableQuests[quest_idx]
         self.availableQuests[quest_idx] = self.drawQuest()
         return quest 
