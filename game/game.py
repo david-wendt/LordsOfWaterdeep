@@ -1,7 +1,7 @@
 from random import shuffle
 from game.game_info import *
 from game.player import Player
-from game.board import BoardState
+from game import board
 from agents import init_agent
 
 # Class to control the flow of the game, focused on turn progression and move 
@@ -29,7 +29,7 @@ class GameState():
         self.roundsLeft = numRounds
 
         # Initialize the BoardState
-        self.boardState = BoardState()
+        self.boardState = board.BoardState()
 
         # Check that we have a valid number of players
         assert 2 <= numPlayers <= 5
@@ -133,6 +133,10 @@ class GameState():
         # Possible places to play an agent are unoccupied buildings
         possibleMoves = [building for building,occupier in self.boardState.buildings.items() 
                          if occupier is None] 
+        
+        # Make sure only one waterdeep harbor slot is present
+        possibleMoves = filterWaterdeep(possibleMoves)
+
         assert len(possibleMoves) > 0,"Issue if there are not enough buildings to play"
         # ^^ This will happen without builder's hall in a 5-player game,
         # or in any other game after round 4
@@ -200,6 +204,9 @@ class GameState():
             # Keep looping until a player runs out of agents
             while sum([player.agents for player in self.players]) > 0:
                 self.takeTurn()
+
+            raise NotImplementedError("waterdeep harbor reassignment ")
+
             print(f"ALL PLAYERS DONE TAKING TURNS, AGENTS EXHAUSTED." + "-" * 50)
 
             print('about to call newRound')
@@ -210,7 +217,7 @@ class GameState():
                 print(self)
 
     def __repr__(self) -> str:
-        return f"Rounds left:{self.roundsLeft}\n{self.boardState}\nPLAYERS:" + "".join([f"{player}" for player in self.players])
+        return f"ROUNDS LEFT: {self.roundsLeft}\n\nBOARD STATE:\n{self.boardState}\nPLAYERS:" + "".join([f"{player}" for player in self.players])
 
 def main():
     gs = GameState()

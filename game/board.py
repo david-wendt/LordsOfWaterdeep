@@ -23,35 +23,16 @@ class BoardState():
         # Initialize the four available quests at Cliffwatch Inn
         self.availableQuests = [self.drawQuest() for _ in range(4)]
 
-    def printBuilding(self, building):
-        res = f"{building.name} (occupier: {self.buildings[building]}): rewards"
-        extra_rewards = ""
-        if building.playIntrigue:
-            extra_rewards += "Play Intrigue"
-        if building.getCastle:
-            extra_rewards += "Castle Waterdeep"
-        
-        if building.rewards:
-            res += f" {building.rewards}"
-            if extra_rewards:
-                res += " + " + extra_rewards
-        else:
-            if extra_rewards:
-                res += " " + extra_rewards
-            else:
-                raise ValueError('Building rewards nothing!')
-        return res 
+    def reprBuilding(self, building):
+        return f"{building}. Occupier: {self.buildings[building]}"
 
     def __repr__(self):
-        res = "Buildings:\n"
-        for building,occupier in self.buildings.items():
-            res += f"\t{building.name}: "
-            if occupier is None:
-                res += "unoccupied.\n"
-            else:
-                res += f"{occupier}.\n"
+        res = "\n".join(["Buildings:"] + [
+            '\t' + self.reprBuilding(building)
+            for building in self.buildings
+        ])
 
-        res += "Quests (at Cliffwatch Inn):\n"
+        res += "\n\nQuests (at Cliffwatch Inn):\n"
         for quest in self.availableQuests:
             res += f"\t{quest}\n"
 

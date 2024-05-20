@@ -6,7 +6,31 @@ class Building:
     name: str 
     rewards: FixedResources
     playIntrigue: bool = False
+    reassign: bool = False 
     getCastle: bool = False
+
+    def __repr__(self):
+        res = f"{self.name}: rewards"
+        extra_rewards = []
+        if self.playIntrigue:
+            extra_rewards.append("Play Intrigue")
+        if self.reassign:
+            extra_rewards.append("reassign")
+        if self.getCastle:
+            extra_rewards.append("Castle Waterdeep")
+        extra_rewards = " + ".join(extra_rewards)
+        
+        if self.rewards:
+            res += f" {self.rewards}"
+            if extra_rewards:
+                res += " + " + extra_rewards
+        else:
+            if extra_rewards:
+                res += " " + extra_rewards
+            else:
+                raise ValueError('Building rewards nothing!')
+            
+        return res
 
 # Define all buildings
 DEFAULT_BUILDINGS = [
@@ -19,12 +43,29 @@ DEFAULT_BUILDINGS = [
     Building("Cliffwatch Inn, intrigue", FixedResources(quests=1, intrigues=1)), # Cliffwatch Inn, intrigue spot (for Quests)
     Building("Cliffwatch Inn, reset", FixedResources(quests=1)), # Cliffwatch Inn, reset quest spot (for Quests)
     Building("Castle Waterdeep", FixedResources(intrigues=1), getCastle=True), # Castle Waterdeep (for Castle + Intrigue)
-    Building("Waterdeep Harbor 1", FixedResources(), playIntrigue=True), # Waterdeep Harbor, first slot (for playing Intrigue)
-    Building("Waterdeep Harbor 2", FixedResources(), playIntrigue=True), # Waterdeep Harbor, second slot (for playing Intrigue)
-    Building("Waterdeep Harbor 3", FixedResources(), playIntrigue=True), # Waterdeep Harbor, third slot (for playing Intrigue)
+    Building("Waterdeep Harbor 1", FixedResources(), playIntrigue=True, reassign=True), # Waterdeep Harbor, first slot (for playing Intrigue)
+    Building("Waterdeep Harbor 2", FixedResources(), playIntrigue=True, reassign=True), # Waterdeep Harbor, second slot (for playing Intrigue)
+    Building("Waterdeep Harbor 3", FixedResources(), playIntrigue=True, reassign=True), # Waterdeep Harbor, third slot (for playing Intrigue)
     # TODO (later) uncomment Builder's Hall
     # "Builder's Hall": Resources(), # Builder's Hall (for buying Buildings)
 ]
 
 # TODO (later): change the below to add all empty building slots
 NUM_POSSIBLE_BUILDINGS = len(DEFAULT_BUILDINGS)
+
+def filterWaterdeep(buildings: list[Building]):
+    ''' Make sure only one waterdeep harbor slot is in list of buildings. '''
+    buildingDict = {building.name: building for building in buildings}
+    if ("Waterdeep Harbor 3" in buildingDict.keys()
+        and ("Waterdeep Harbor 2" in buildingDict.keys()
+             or "Waterdeep Harbor 1" in buildingDict.keys())):
+            buildings.remove(buildingDict["Waterdeep Harbor 3"])
+
+    if ("Waterdeep Harbor 2" in buildingDict.keys()
+        and "Waterdeep Harbor 1" in buildingDict.keys()):
+        buildings.remove(buildingDict["Waterdeep Harbor 2"])
+
+    waterdeepHarbors = [building.name for building in buildings
+                     if "Waterdeep Harbor" in building.name]
+    assert len(waterdeepHarbors) in [0,1]
+    return buildings
