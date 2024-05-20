@@ -19,6 +19,7 @@ for i,type1 in enumerate(QUEST_TYPES):
 # TODO (later version): uncomment building lord card
 # LORD_CARDS.append("Buildings")
 
+NUM_CLIFFWATCH_QUESTS = 4
 
 # Define number of agents per player as a function of number of players
 def agentsPerPlayer(numPlayers: int):

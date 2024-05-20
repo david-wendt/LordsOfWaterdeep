@@ -21,7 +21,10 @@ class BoardState():
         self.buildings = {building: None for building in DEFAULT_BUILDINGS}
 
         # Initialize the four available quests at Cliffwatch Inn
-        self.availableQuests = [self.drawQuest() for _ in range(4)]
+        self.availableQuests = [self.drawQuest() for _ in range(NUM_CLIFFWATCH_QUESTS)]
+
+        # Discard pile of quests
+        self.questDiscard = []
 
     def reprBuilding(self, building):
         return f"{building}. Occupier: {self.buildings[building]}"
@@ -47,10 +50,20 @@ class BoardState():
         '''
         Draw the top quest from the quest stack,
         removing it from the stack in the process.
+        Resuffles discard pile if stack is empty.
         
         Returns: 
             The top quest from the quest stack.
         '''
+        
+        # Need to reshuffle discard pile
+        if len(self.questStack) == 0:
+            if len(self.questDiscard) == 0:
+                raise ValueError("Out of quests, and empty discard pile!")
+            self.questStack = self.questDiscard
+            self.questDiscard = []
+            shuffle(self.questStack)
+
         return self.questStack.pop()
     
     def drawIntrigue(self) -> str: # TODO (later): Change return type depending on intrigue card implementation
@@ -69,6 +82,14 @@ class BoardState():
         quest = self.availableQuests[quest_idx]
         self.availableQuests[quest_idx] = self.drawQuest()
         return quest 
+
+    def resetQuests(self):
+        ''' Reset the quests at Cliffwatch Inn '''
+        self.questDiscard.extend(self.availableQuests)
+        self.availableQuests = [
+            self.drawQuest()
+            for _ in range(NUM_CLIFFWATCH_QUESTS)
+        ]
 
 def main():
     # Test the quest stack

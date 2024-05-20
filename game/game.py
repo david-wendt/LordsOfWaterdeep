@@ -158,6 +158,9 @@ class GameState():
         self.boardState.buildings[building] = currentPlayer.name
         currentPlayer.agents -= 1
 
+        if building.resetQuests:
+            self.boardState.resetQuests()
+
         # Secondary choices (quest, intrigue card)
         if building.rewards.quests > 0:
             for _ in range(building.rewards.quests):
