@@ -210,7 +210,7 @@ class GameState():
                 print(self)
 
     def __repr__(self) -> str:
-        return f"{self.boardState}\nPLAYERS:" + "".join([f"{player}" for player in self.players])
+        return f"Rounds left:{self.roundsLeft}\n{self.boardState}\nPLAYERS:" + "".join([f"{player}" for player in self.players])
 
 def main():
     gs = GameState()
