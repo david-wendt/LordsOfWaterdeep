@@ -16,9 +16,11 @@ class Building:
         if self.playIntrigue:
             extra_rewards.append("Play Intrigue")
         if self.reassign:
-            extra_rewards.append("reassign")
+            extra_rewards.append("Reassign Agent")
         if self.getCastle:
             extra_rewards.append("Castle Waterdeep")
+        if self.resetQuests:
+            extra_rewards.append("Reset Quests")
         extra_rewards = " + ".join(extra_rewards)
         
         if self.rewards:

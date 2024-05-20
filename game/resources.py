@@ -12,8 +12,8 @@ class Resources:
 
     def __repr__(self) -> str:
         res = ""
-        if self.VPs > 0:
-            res += f"VPs: {self.VPs}, "
+        # if self.VPs > 0: # Only display VPs for FixedResources
+        #     res += f"VPs: {self.VPs}, "
         if self.wizards > 0:
             res += f"wizards: {self.wizards}, "
         if self.clerics > 0:

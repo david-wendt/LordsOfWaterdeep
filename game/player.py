@@ -33,11 +33,20 @@ class Player():
 
         self.hasCastle = False # for Castle Waterdeep
 
-    def __repr__(self):
-        res = f"\nPlayer `{self.name}`\n\tAgents remaining: {self.agents}\n\tResources: {self.resources}"
-        res += f"\n\tIngrigues: {len(self.intrigues)}"
+    def _base_repr(self):
+        res = f"\nPlayer `{self.name}`\n\t"
+        res += f"VPs: {self.resources.VPs}\n\t"
+        res += f"Agents remaining: {self.agents}\n\tResources: {self.resources}"
         if self.hasCastle:
             res += "\n\tCastle Waterdeep: Owned"
+        return res
+        
+    def __repr__(self):
+        questTypes = ", ".join([quest.type for quest in self.activeQuests])
+        res = self._base_repr()
+        res += f"\n\tIngrigues: {len(self.intrigues)}"
+        res += f"\n\tQuests: {questTypes}" # NOTE: Full quest info
+        # should be public, but I thought it would be too clunky for this repr
         return res
     
     def _private_repr(self):
