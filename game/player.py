@@ -35,6 +35,7 @@ class Player():
 
     def __repr__(self):
         res = f"\nPlayer `{self.name}`\n\tAgents remaining: {self.agents}\n\tResources: {self.resources}"
+        res += f"\n\tIngrigues: {len(self.intrigues)}"
         if self.hasCastle:
             res += "\n\tCastle Waterdeep: Owned"
         return res

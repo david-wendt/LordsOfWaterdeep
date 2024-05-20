@@ -42,7 +42,8 @@ def featurizePlayer(player: Player):
     # Vector of the player's resources
     resourceVec = featurizeResources(player.resources, includeVP=True)
 
-    # TODO (later): Add number of Intrigue cards and plot quests
+    # TODO: Add number of Intrigue cards 
+    # TODO (later): add number of plot quests
 
     # Vector of the player's featurized active/completed quests
     questFeaturesList = []
@@ -52,6 +53,13 @@ def featurizePlayer(player: Player):
                 questFeaturesList.append(featurizeQuest(playerQuests[i]))
             else:
                 questFeaturesList.append(np.zeros(QUEST_FEATURE_LEN))
+
+    # TODO: Maybe reorder based on score? 
+    # You first, then main rival,
+    # then second rival, etc (decreasing order of otherPlayer.score())
+    # Originally I was fine with featurizing in turn order, but
+    # realized it is not so simple during reassignment phase
+    # when you are playing out of turn order
 
     return np.hstack([agentsVec, resourceVec] + questFeaturesList)
 

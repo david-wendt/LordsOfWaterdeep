@@ -45,6 +45,9 @@ INTRIGUES = [
 ] * 20
 # TODO (later): figure out what to do for intrigue cards
 
+REASSIGNED = '__reassigned__' # 'occupier' of a waterdeep harbor slot
+    # once the agent there has been reassigned 
+
 def main():
     pass
 

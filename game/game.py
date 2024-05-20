@@ -1,7 +1,9 @@
 from random import shuffle
+
 from game.game_info import *
 from game.player import Player
 from game import board
+from game import utils 
 from agents import init_agent
 
 # Class to control the flow of the game, focused on turn progression and move 
@@ -37,17 +39,17 @@ class GameState():
 
         # Set default player names
         if playerNames is None:
-            self.playerNames = [
+            playerNames = [
                 "PlayerOne", "PlayerTwo", 
                 "PlayerThree", "PlayerFour",
                 "PlayerFive"
             ][:numPlayers]
         else:
             assert len(playerNames) == self.numPlayers
-            self.playerNames = playerNames
 
-        if len(self.playerNames) != len(set(self.playerNames)):
+        if len(playerNames) != len(set(playerNames)):
             raise ValueError("Need to have unique player names")
+        assert REASSIGNED not in playerNames
 
         if playerAgents is None:
             self.playerAgents = ["Manual"] * self.numPlayers
@@ -61,11 +63,14 @@ class GameState():
 
         # Initialize the players
         self.players = [Player(
-            name=self.playerNames[i],
+            name=playerNames[i],
             agent=init_agent.init_agent(self.playerAgents[i]),
             numAgents=agentsPerPlayer(numPlayers),
             lordCard=shuffled_lord_cards[i]
         ) for i in range(numPlayers)]
+
+        self.namesToPlayers = {player.name: player 
+                               for player in self.players}
 
         # This is not only a list of players, but 
         # also represents the turn order. It will 
@@ -122,9 +127,8 @@ class GameState():
         for player in self.players:
             assert player.hasCastle == False 
 
-    def takeTurn(self):
+    def takeTurn(self, currentPlayer):
         '''Take a single turn in the turn order.'''
-        currentPlayer = self.players[0]
 
         # Return if you don't have any agents to play
         if currentPlayer.agents == 0:
@@ -135,7 +139,7 @@ class GameState():
                          if occupier is None] 
         
         # Make sure only one waterdeep harbor slot is present
-        possibleMoves = filterWaterdeep(possibleMoves)
+        possibleMoves = utils.filterWaterdeep(possibleMoves)
 
         assert len(possibleMoves) > 0,"Issue if there are not enough buildings to play"
         # ^^ This will happen without builder's hall in a 5-player game,
@@ -195,23 +199,26 @@ class GameState():
             if move_idx > 0:
                 currentPlayer.completeQuest(completableQuests[move_idx - 1])
 
-        # Reorder turn order to show that the player has moved.
-        self.players = self.players[1:] + [currentPlayer]
-
     def runGame(self, verbose):
         '''Umbrella function to run the game.'''
         while self.roundsLeft > 0:
             # Keep looping until a player runs out of agents
             while sum([player.agents for player in self.players]) > 0:
-                self.takeTurn()
+                self.takeTurn(self.players[0])
+                # Reorder turn order to show that the player has moved.
+                self.players = self.players[1:] + [self.players[0]]
 
-            raise NotImplementedError("waterdeep harbor reassignment ")
+            # Reassign agents from waterdeep harbor
+            waterdeepHarbors = utils.getWaterdeepHarbors(self.boardState.buildings)
+            for waterdeepHarbor in waterdeepHarbors:
+                occupier = self.boardState.buildings[waterdeepHarbor]
+                if occupier is not None:
+                    self.boardState.buildings[waterdeepHarbor] = REASSIGNED
+                    player = self.namesToPlayers[occupier]
+                    player.agents += 1
+                    self.takeTurn(player)
 
-            print(f"ALL PLAYERS DONE TAKING TURNS, AGENTS EXHAUSTED." + "-" * 50)
-
-            print('about to call newRound')
             self.newRound()
-            print('done calling newRound')
 
             if verbose:
                 print(self)
