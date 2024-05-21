@@ -158,8 +158,17 @@ class GameState():
         self.boardState.buildings[building] = currentPlayer.name
         currentPlayer.agents -= 1
 
+        currentPlayer.getResources(building.rewards.toResources())
+        
+        if building.getCastle:
+            currentPlayer.hasCastle = True 
+
         if building.resetQuests:
             self.boardState.resetQuests()
+
+        if building.rewards.intrigues > 0:
+            for _ in range(building.rewards.intrigues):
+                currentPlayer.getIntrigue(self.boardState.drawIntrigue())
 
         # Secondary choices (quest, intrigue card)
         if building.rewards.quests > 0:
@@ -167,10 +176,6 @@ class GameState():
                 quest_idx = currentPlayer.selectMove(self, self.boardState.availableQuests)
                 quest = self.boardState.chooseQuest(quest_idx)
                 currentPlayer.getQuest(quest)
-
-        if building.rewards.intrigues > 0:
-            for _ in range(building.rewards.intrigues):
-                currentPlayer.getIntrigue(self.boardState.drawIntrigue())
         
         if building.playIntrigue:
             if len(currentPlayer.intrigues) == 0:
@@ -189,11 +194,6 @@ class GameState():
                 currentPlayer.getResources(resource_options[resource_idx])
             else:
                 raise ValueError(f"Unknown intrigue card: {intrigue}")
-
-        currentPlayer.getResources(building.rewards.toResources())
-        
-        if building.getCastle:
-            currentPlayer.hasCastle = True 
 
         # Optionally complete a quest
         completableQuests = currentPlayer.completableQuests()
