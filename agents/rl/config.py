@@ -2,6 +2,7 @@
 
 import torch.nn as nn
 
+# right now only sets up config for policy gradient -- should dqn be seperate function or combined
 class config_lords:
     def __init__(self, use_baseline, ppo, seed):
         self.env_name = "lords"
@@ -27,7 +28,6 @@ class config_lords:
         # model and training config
         self.num_batches = 100  # number of batches trained on
         self.batch_size = 2000  # number of steps used to compute each policy update
-        self.max_ep_len = 200  # maximum episode length
         self.learning_rate = 3e-2
         self.gamma = 1.0  # the discount factor
         self.use_baseline = use_baseline

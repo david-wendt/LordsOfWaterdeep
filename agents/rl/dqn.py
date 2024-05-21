@@ -13,11 +13,8 @@ from collections import deque
 from agents.agent import Agent
 import math
 
-#TODO - where to set this
-BATCH_SIZE = 1000
-
 class DeepQNet(nn.Module):
-    def __init__(self, observation_dim, action_dim, 
+    def __init__(self, observation_dim, n_actions, 
                  n_hidden_layers=2, hidden_layer_size=64,
                  learning_rate=0.001, discount_factor=1., replay_capacity=1000):
         super(DeepQNet, self).__init__()
@@ -25,7 +22,7 @@ class DeepQNet(nn.Module):
         self.discount_factor = discount_factor
 
         # TODO - decide between passing in params and config
-        self.policy_network = build_mlp(observation_dim, action_dim, n_hidden_layers, hidden_layer_size)
+        self.policy_network = build_mlp(observation_dim, n_actions, n_hidden_layers, hidden_layer_size)
 
         # use this line periodically (every sum number of episodes)
         self.target_network = self.policy_network.load_state_dict(self.policy_network.state_dict())
@@ -40,6 +37,7 @@ class DeepQNet(nn.Module):
     
     # started from code from https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html and adjusted
     def optimize_model(self):
+        # get BATCH_SIZE
         if len(self.memory) < BATCH_SIZE:
             return
         transitions = self.memory.sample(BATCH_SIZE)
@@ -114,22 +112,25 @@ class DQNAgent(Agent):
         self.eps_start = ...
         self.eps_end = ...
         self.eps_decay = ...
-        self.num_actions = ...
+        self.n_actions = ...
         self.steps_done = 0
     
     # epsilon greedy policy
-    def act(self, state, policy_net, steps_done, n_actions):
+    def act(self, state, list_of_actions):
+        # call featurize (state, list of actions)
+        # gives features, binary encoding of available actions
+
         sample = random.random()
 
         #one way to do this -- can consider others
         eps_threshold = self.eps_end + (self.eps_start - self.eps_start) * \
-                        math.exp(-1. * steps_done / self.eps_decay)
+                        math.exp(-1. * self.steps_done / self.eps_decay)
         self.steps_done += 1
         if sample > eps_threshold:
             with torch.no_grad():
-                return policy_net(state).max(1)[1].view(1, 1)
+                return self.dqn(state).max(1)[1].view(1, 1)
         else:
-            return torch.tensor([[random.randrange(n_actions)]], dtype=torch.long)
+            return torch.tensor([[random.randrange(self.n_actions)]], dtype=torch.long)
         
 """
 here is the framework I think for training with this memory thing -- need to fill details
