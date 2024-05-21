@@ -16,10 +16,12 @@ import math
 class DeepQNet(nn.Module):
     def __init__(self, observation_dim, n_actions, 
                  n_hidden_layers=2, hidden_layer_size=64,
-                 learning_rate=0.001, discount_factor=1., replay_capacity=1000):
+                 learning_rate=0.001, discount_factor=1., replay_capacity=1000, batch_size=128):
         super(DeepQNet, self).__init__()
 
         self.discount_factor = discount_factor
+
+        self.batch_size = batch_size
 
         # TODO - decide between passing in params and config
         self.policy_network = build_mlp(observation_dim, n_actions, n_hidden_layers, hidden_layer_size)
@@ -107,26 +109,20 @@ class ReplayMemory(object):
 
 class DQNAgent(Agent):
     # can consider what other params to include
-    def __init__(self, dqn: DeepQNet):
+    def __init__(self, dqn: DeepQNet, eps_start, eps_end, eps_decay, n_actions):
         self.dqn = dqn 
-        self.eps_start = ...
-        self.eps_end = ...
-        self.eps_decay = ...
-        self.n_actions = ...
-        self.steps_done = 0
+        self.eps = eps_start
+        self.eps_end = eps_end
+        self.eps_decay = eps_decay
+        self.n_actions = n_actions
     
     # epsilon greedy policy
-    def act(self, state, list_of_actions):
+    def act(self, state, actions):
         # call featurize (state, list of actions)
         # gives features, binary encoding of available actions
-
+        self.eps = self.eps_end + self.eps * math.exp(-1. / self.eps_decay)
         sample = random.random()
-
-        #one way to do this -- can consider others
-        eps_threshold = self.eps_end + (self.eps_start - self.eps_start) * \
-                        math.exp(-1. * self.steps_done / self.eps_decay)
-        self.steps_done += 1
-        if sample > eps_threshold:
+        if sample > self.eps:
             with torch.no_grad():
                 return self.dqn(state).max(1)[1].view(1, 1)
         else:
