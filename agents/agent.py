@@ -1,4 +1,7 @@
 class Agent():
-    def act(self, state, actions) -> int:
+    def __init__(self) -> None:
+        pass 
+
+    def act(self, state, playerState, actions, score) -> int:
         ''' Override this in subclasses'''
         raise NotImplementedError

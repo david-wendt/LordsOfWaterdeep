@@ -10,8 +10,10 @@ import torch.optim as optim
 import random
 from collections import namedtuple
 from collections import deque
-from agents.agent import Agent
 import math
+
+from agents.agent import Agent
+from features import featurize
 
 class DeepQNet(nn.Module):
     def __init__(self, observation_dim, n_actions, 
@@ -26,18 +28,15 @@ class DeepQNet(nn.Module):
         self.epsisode = 0
         self.target_reset_freq = 1000
 
-        # Use this for rewards
-        self.val = 0
         # Use this to remember the previous state
         self.prev_state = None
         self.prev_action = None
-        self.prev_actions_mask
 
         self.policy_network = build_mlp(observation_dim, n_actions, n_hidden_layers, hidden_layer_size)
         # use this line periodically (every sum number of episodes)
         self.target_network = self.policy_network.load_state_dict(self.policy_network.state_dict())
 
-        self.optimizer = optim.Adam(self.mlp.parameters(), lr=learning_rate)
+        self.optimizer = optim.AdamW(self.mlp.parameters(), lr=learning_rate)
 
         # not sure if this should be a member here
         self.memory = ReplayMemory(replay_capacity)
@@ -81,7 +80,7 @@ class DeepQNet(nn.Module):
         # state value or 0 in case the state was final.
         next_state_values = torch.zeros(self.batch_size, device=device)
         with torch.no_grad():
-            # need to mask with actions
+            # TODO - need to mask with action_mask
             next_state_values[non_final_mask] = self.target_network(non_final_next_states).max(1).values
         # Compute the expected Q values
         expected_state_action_values = (next_state_values * self.discount_factor) + reward_batch
@@ -101,7 +100,7 @@ class DeepQNet(nn.Module):
 # https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html
 # for setting up replay memory
 Transition = namedtuple('Transition',
-                        ('state', 'action', 'next_state', 'reward'))
+                        ('state', 'action', 'next_state', 'reward', 'action_mask'))
 
 class ReplayMemory(object):
 
@@ -127,14 +126,32 @@ class DQNAgent(Agent):
         self.eps_end = eps_end
         self.eps_decay = eps_decay
         self.n_actions = n_actions
+        self.prev_score = 0.0
+
+    
+    # TODO - check on this?
+    def end_game(self, score):
+        reward = torch.tensor([score - self.prev_score], dtype=torch.float32)
+        self.dqn.memory.push(self.prev_state, self.prev_action, None, reward, None)
+        self.dqn.optimize_model()
+        
+        self.prev_state = None
     
     # epsilon greedy policy
-    def act(self, state, actions):
-        reward = torch.tensor([self.val - self.prev_val], dtype=torch.float32)
-        state_tensor, actions_mask = featurize(state, actions)
-        self.dqn.memory.push(self.prev_state, self.prev_action, state_tensor, reward, actions_mask)
-        self.dqn.optimize_model()
-        self.prev_state = state_tensor
+    def act(self, gameState, playerState, actions, score):
+        # at the end of the game method called end game
+        # on every agent do a final update
+        # at start of act, only do push if prev_state is not None else move on
+
+        state_tensor, action_mask = featurize.featurize(gameState, playerState, actions)
+
+        if self.prev_state is not None:
+            reward = torch.tensor([score - self.prev_score], dtype=torch.float32)
+            self.dqn.memory.push(self.prev_state, self.prev_action, state_tensor, reward, action_mask)
+            self.dqn.optimize_model()
+
+        self.dqn.prev_state = state_tensor
+        self.prev_score = score
 
         self.dqn.episode += 1
         if self.dqn.episode % self.dqn.target_reset_freq == 0:
@@ -146,9 +163,11 @@ class DQNAgent(Agent):
         sample = random.random()
         if sample > self.eps:
             with torch.no_grad():
-                return torch.argmax(self.dqn(state)) # mask with actions_mask
+                action = torch.argmax(self.dqn(state_tensor) + 1e10 * (action_mask - 1)) # mask with actions_mask
         else:
-            return torch.tensor([[random.randrange(self.n_actions)]], dtype=torch.long)
+            action = torch.tensor([[random.randrange(self.n_actions)]], dtype=torch.long)
+        self.prev_action = action
+        return action
         
 """
 here is the framework I think for training with this memory thing -- need to fill details
