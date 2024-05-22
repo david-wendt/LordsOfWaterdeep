@@ -53,5 +53,10 @@ DEFAULT_BUILDINGS = [
     # "Builder's Hall": Resources(), # Builder's Hall (for buying Buildings)
 ]
 
+# Ensure buildings have unique names
+# TODO (later): include additional buildings (in the below)
+building_names = [building.name for building in DEFAULT_BUILDINGS] 
+assert len(building_names) == len(set(building_names)),"Buildings must have unique names!"
+
 # TODO (later): change the below to add all empty building slots
-NUM_POSSIBLE_BUILDINGS = len(DEFAULT_BUILDINGS)
+NUM_ADDITIONAL_BUILDINGS = 0
