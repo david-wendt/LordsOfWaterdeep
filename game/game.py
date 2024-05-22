@@ -177,16 +177,13 @@ class GameState():
         if building.playIntrigue:
             if len(currentPlayer.intrigues) == 0:
                 raise ValueError(f'Player {currentPlayer.name} has no intrigue cards to play!')
-            intrigue_idx = currentPlayer.selectMove(self, currentPlayer.intrigues)
+            
+            # TODO (later): uncomment the below once we have different intrigue cards
+            # intrigue_idx = currentPlayer.selectMove(self, currentPlayer.intrigues)
+            intrigue_idx = 0
             intrigue = currentPlayer.intrigues.pop(intrigue_idx)
             if intrigue == "Choice of any resource":
-                resource_options = [
-                    Resources(gold=4),
-                    Resources(fighters=2),
-                    Resources(rogues=2),
-                    Resources(wizards=1),
-                    Resources(clerics=1)
-                ]
+                resource_options = STANDARD_RESOURCE_BUNDLES
                 resource_idx = currentPlayer.selectMove(self, resource_options)
                 currentPlayer.getResources(resource_options[resource_idx])
             else:
@@ -195,7 +192,7 @@ class GameState():
         # Optionally complete a quest
         completableQuests = currentPlayer.completableQuests()
         if completableQuests:
-            move_idx = currentPlayer.selectMove(self, ['Do Not Complete a Quest'] + completableQuests) 
+            move_idx = currentPlayer.selectMove(self, [DO_NOT_COMPLETE_QUEST] + completableQuests) 
             if move_idx > 0:
                 currentPlayer.completeQuest(completableQuests[move_idx - 1])
 
