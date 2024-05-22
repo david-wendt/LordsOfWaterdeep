@@ -219,10 +219,17 @@ class GameState():
 
             if verbose:
                 print(self)
+        
+        # end game code
+        scores = []
+        for player in self.players: # TODO - go in initial order
+            scores.append(player.score())
+            player.agent.end_game(player.score())
+        return scores, scores # TODO - make one VPs
 
     def __repr__(self) -> str:
         return f"ROUNDS LEFT: {self.roundsLeft}\n\nBOARD STATE:\n{self.boardState}\nPLAYERS:" + "".join([f"{player}" for player in self.players])
 
-def main():
-    gs = GameState()
+def main(agents):
+    gs = GameState(agents, numRounds=4)
     gs.runGame(False)

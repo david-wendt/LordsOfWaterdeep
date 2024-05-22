@@ -3,7 +3,7 @@ from printing_utils import header
 import random 
 
 class ManualAgent(Agent):
-    def act(self, gameState, playerState, actions) -> int:
+    def act(self, gameState, playerState, actions, score) -> int:
         print(header('GAME STATE') + f'\n{gameState}\n')
         print(header('PLAYER STATE') + f'\n{playerState._private_repr()}\n')
         print(header('ACTIONS AVAILABLE'))
@@ -14,3 +14,5 @@ class ManualAgent(Agent):
             choice = input("Choose an action (enter index): ")
             if choice == "": return random.randint(0,len(actions) - 1) # Random if empty
         return int(choice)
+    def end_game(self, score):
+        return
