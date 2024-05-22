@@ -43,7 +43,7 @@ def agentsPerPlayer(numPlayers: int):
     
 INTRIGUES = [
     'Choice of any resource', # 4 gold or 2 F/R or 1 W/C
-] * 20
+] * 50
 # TODO (later): figure out what to do for intrigue cards
 
 REASSIGNED = '__reassigned__' # 'occupier' of a waterdeep harbor slot
@@ -51,7 +51,6 @@ REASSIGNED = '__reassigned__' # 'occupier' of a waterdeep harbor slot
 
 def main():
     pass
-
 
 if __name__ == '__main__':
     main()
