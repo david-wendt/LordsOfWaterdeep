@@ -1,4 +1,7 @@
+import numpy as np
+import pandas as pd 
 from dataclasses import dataclass
+
 from game.resources import FixedResources
 
 # Define all quest types
@@ -11,6 +14,8 @@ COMMERCE = "Commerce"
 
 QUEST_TYPES = [ARCANA, PIETY, SKULLDUGGERY, WARFARE, COMMERCE]
 
+LETTER_TO_QUEST_TYPE = {qtype[0]: qtype for qtype in QUEST_TYPES}
+
 @dataclass(frozen=True)
 class Quest:
     ''' Class representing a quest '''
@@ -22,53 +27,65 @@ class Quest:
     def __repr__(self) -> str:
         return f"{self.name} ({self.type}):\n\t\tRequires {self.requirements}\n\t\tRewards {self.rewards}"
 
+# Two quests that I originally edited:
+#     Quest('Convert a Noble to Lathander EDITED', PIETY,
+#         requirements=FixedResources(clerics=2, wizards=1),
+#         rewards=FixedResources(quests=1, VPs=10)), # Changed from 8 to 10 to put on equal footing with the next two
+#     Quest('Thin the City Watch EDITED', COMMERCE,
+#         requirements=FixedResources(clerics=1, fighters=1, rogues=1, gold=4),
+#         rewards=FixedResources(rogues=2, VPs=8)), # Seems to be OP otherwise (see spreadsheet)
 
-QUESTS = [
-    Quest('Train Bladesingers', WARFARE, 
-          requirements=FixedResources(fighters=3, wizards=1), 
-          rewards=FixedResources(fighters=1, wizards=1, VPs=4)),
-    Quest('Spy on the House of Light', COMMERCE,
-        requirements=FixedResources(fighters=3, rogues=2),
-        rewards=FixedResources(gold=6, VPs=6)),
-    Quest('Safeguard Eltorchul Mage', COMMERCE,
-        requirements=FixedResources(fighters=1, rogues=1, wizards=1, gold=4),
-        rewards=FixedResources(wizards=2, VPs=4)),
-    Quest('Expose Cult Corruption', SKULLDUGGERY,
-        requirements=FixedResources(clerics=1, rogues=4),
-        rewards=FixedResources(clerics=2, VPs=4)),
-    Quest('Domesticate Owlbears', ARCANA,
-        requirements=FixedResources(clerics=1, wizards=2),
-        rewards=FixedResources(fighters=1, gold=2, VPs=8)),
-    Quest('Procure Stolen Goods', SKULLDUGGERY,
-        requirements=FixedResources(rogues=3, gold=6),
-        rewards=FixedResources(intrigues=2, VPs=8)),
-    Quest('Ambush Artor Modlin', WARFARE,
-        requirements=FixedResources(clerics=1, fighters=3, rogues=1),
-        rewards=FixedResources(gold=4, VPs=8)),
-    Quest('Raid Orc Stronghold', WARFARE,
-        requirements=FixedResources(fighters=4, rogues=2),
-        rewards=FixedResources(gold=4, VPs=8)),
-    Quest('Build a Reputation in Skullport', SKULLDUGGERY,
-        requirements=FixedResources(fighters=1, rogues=3, gold=4),
-        rewards=FixedResources(intrigues=1, VPs=10)),
-    Quest('Convert a Noble to Lathander EDITED', PIETY,
-        requirements=FixedResources(clerics=2, wizards=1),
-        rewards=FixedResources(quests=1, VPs=10)), # Changed from 8 to 10 to put on equal footing with the next two
-    Quest('Discover Hidden Temple of Lolth', PIETY,
-        requirements=FixedResources(clerics=2, fighters=1, rogues=1),
-        rewards=FixedResources(quests=1, VPs=10)),
-    Quest('Form an Alliance with the Rashemi', PIETY,
-        requirements=FixedResources(clerics=2, wizards=1),
-        rewards=FixedResources(quests=1, VPs=10)),
-    Quest('Thin the City Watch EDITED', COMMERCE,
-        requirements=FixedResources(clerics=1, fighters=1, rogues=1, gold=4),
-        rewards=FixedResources(rogues=2, VPs=8)), # Seems to be OP otherwise (see spreadsheet)
-    Quest('Steal Spellbook from Silverhand', ARCANA,
-        requirements=FixedResources(fighters=1, rogues=2, wizards=2),
-        rewards=FixedResources(gold=4, intrigues=2, VPs=7)),
-    Quest('Investigate Aberrant Infestation', ARCANA,
-        requirements=FixedResources(clerics=1, fighters=1, wizards=2),
-        rewards=FixedResources(intrigues=1, VPs=13))
-    # TODO: FIll this with the other quests (except for plot quests)
-    # TODO (later): add plot quests
-]
+# TODO (later): add plot quests 
+
+def parseQuests():
+    fname = 'data/quests.csv'
+
+    df = pd.read_csv(
+        fname, comment='#'
+    ).drop([
+        'Net',
+        'Net.1',
+        'Profit',
+        'Notes'
+    ], axis=1)
+
+    # Filter out plot quests
+    plotQuests = df['Special benefits'].isna()
+    df = df.loc[plotQuests,:].drop('Special benefits', axis=1)
+    df = df.fillna(0.0)
+
+    for col in df.columns:
+        if col != df[col].dtype == np.float64:
+            df[col] = df[col].astype(np.int64)
+
+    quests = []
+    for i,row in df.iterrows():
+        quests.append(Quest(
+            name=row['Name'],
+            type=LETTER_TO_QUEST_TYPE[row['Type']],
+            requirements=FixedResources(
+                wizards=row['W'],
+                clerics=row['C'],
+                fighters=row['F'],
+                rogues=row['R'],
+                gold=row['G']
+            ),
+            rewards=FixedResources(
+                wizards=row['W.1'],
+                clerics=row['C.1'],
+                fighters=row['F.1'],
+                rogues=row['R.1'],
+                gold=row['G.1'],
+                intrigues=row['I'],
+                quests=row['Quest'],
+                VPs=row['VP']
+            )
+        ))
+
+    return quests
+
+QUESTS = parseQuests()
+
+def main():
+    for quest in QUESTS:
+        print(quest)
