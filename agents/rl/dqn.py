@@ -20,12 +20,20 @@ class DeepQNet(nn.Module):
         super(DeepQNet, self).__init__()
 
         self.discount_factor = discount_factor
-
         self.batch_size = batch_size
 
-        # TODO - decide between passing in params and config
-        self.policy_network = build_mlp(observation_dim, n_actions, n_hidden_layers, hidden_layer_size)
+        # to know how often to go to target
+        self.epsisode = 0
+        self.target_reset_freq = 1000
 
+        # Use this for rewards
+        self.val = 0
+        # Use this to remember the previous state
+        self.prev_state = None
+        self.prev_action = None
+        self.prev_actions_mask
+
+        self.policy_network = build_mlp(observation_dim, n_actions, n_hidden_layers, hidden_layer_size)
         # use this line periodically (every sum number of episodes)
         self.target_network = self.policy_network.load_state_dict(self.policy_network.state_dict())
 
@@ -36,6 +44,9 @@ class DeepQNet(nn.Module):
 
     def forward(self, x):
         return self.policy_network(x)
+    
+    def update_to_target(self):
+        self.target_network = self.policy_network.load_state_dict(self.policy_network.state_dict())
     
     # started from code from https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html and adjusted
     def optimize_model(self):
@@ -70,6 +81,7 @@ class DeepQNet(nn.Module):
         # state value or 0 in case the state was final.
         next_state_values = torch.zeros(self.batch_size, device=device)
         with torch.no_grad():
+            # need to mask with actions
             next_state_values[non_final_mask] = self.target_network(non_final_next_states).max(1).values
         # Compute the expected Q values
         expected_state_action_values = (next_state_values * self.discount_factor) + reward_batch
@@ -118,13 +130,23 @@ class DQNAgent(Agent):
     
     # epsilon greedy policy
     def act(self, state, actions):
+        reward = torch.tensor([self.val - self.prev_val], dtype=torch.float32)
+        state_tensor, actions_mask = featurize(state, actions)
+        self.dqn.memory.push(self.prev_state, self.prev_action, state_tensor, reward, actions_mask)
+        self.dqn.optimize_model()
+        self.prev_state = state_tensor
+
+        self.dqn.episode += 1
+        if self.dqn.episode % self.dqn.target_reset_freq == 0:
+            self.dqn.update_to_target()
+
         # call featurize (state, list of actions)
         # gives features, binary encoding of available actions
         self.eps = self.eps_end + self.eps * math.exp(-1. / self.eps_decay)
         sample = random.random()
         if sample > self.eps:
             with torch.no_grad():
-                return self.dqn(state).max(1)[1].view(1, 1)
+                return torch.argmax(self.dqn(state)) # mask with actions_mask
         else:
             return torch.tensor([[random.randrange(self.n_actions)]], dtype=torch.long)
         
