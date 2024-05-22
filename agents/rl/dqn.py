@@ -97,24 +97,28 @@ class DQNAgent(Agent):
         state_batch = torch.stack(batch.state) # should be cat?
 
         action_batch = torch.stack(batch.action) # should be cat?
-        reward_batch = torch.stack(batch.reward)
+        reward_batch = torch.stack(batch.reward).squeeze() # added .squeeze()
 
         # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
         # columns of actions taken. These are the actions which would've been taken
         # for each batch state according to policy_net
+        #print("seeking issue")
         state_action_values = self.dqn.policy_network(state_batch).gather(1, action_batch)
-
+        #print("seeking issue done")
         # Compute V(s_{t+1}) for all next states.
         # Expected values of actions for non_final_next_states are computed based
         # on the "older" target_net; selecting their best reward with max(1).values
         # This is merged based on the mask, such that we'll have either the expected
         # state value or 0 in case the state was final.
         next_state_values = torch.zeros(self.batch_size, device=device)
+
         with torch.no_grad():
             # TODO - need to mask with action_mask
             next_state_values[non_final_mask] = self.dqn.target_network(non_final_next_states).max(1).values
+
         # Compute the expected Q values
         expected_state_action_values = (next_state_values * self.discount_factor) + reward_batch
+        expected_state_action_values.unsqueeze(1)
 
         # Compute Huber loss
         criterion = nn.SmoothL1Loss()
