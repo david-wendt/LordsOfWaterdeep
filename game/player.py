@@ -209,10 +209,42 @@ class Player():
             # TODO (later version): add check for lordCard = "Buildings"
 
         return score 
-    
+
     def selectMove(self, gameState, actions):
         if isinstance(self.agent, ManualAgent):
             print("\n\nCURRENT PLAYER:", self.name, "(manual agent) must select a move.")
             
         score = self.score()
         return self.agent.act(gameState, self, actions, score)
+    
+    def convertResourcesToVPs(self):
+        self.VPs += (
+            self.resources.clerics
+            + self.resources.wizards
+            + self.resources.fighters
+            + self.resources.rogues
+            + self.resources.gold // 2
+        )
+        self.removeResources(self.resources)
+
+    def lordCardToVPs(self):
+        for quest in self.completedQuests:
+            if quest.type in self.lordCard:
+                self.VPs += 4
+
+    def clear(self):
+        self.activeQuests = []
+        self.completedQuests = []
+        self.intrigues = []
+        self.hasCastle = False 
+
+    def endGame(self): 
+        # End game VPs
+        self.convertResourcesToVPs()
+        self.lordCardToVPs()
+        self.clear()
+
+        # Final score to agent/eval
+        score = self.score()
+        self.agent.end_game(score)
+        return score

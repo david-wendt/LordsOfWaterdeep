@@ -25,18 +25,22 @@ def appendStats(stats, scores, VPs, n_agents):
             stats['scores'][iagent].append(scores[iagent])
             stats['VPs'][iagent].append(VPs[iagent])
 
-            otherScores = scores.copy()
-            otherScores.pop(iagent)
             otherVPs = VPs.copy()
             otherVPs.pop(iagent)
-            stats['score edge'][iagent].append(scores[iagent] - np.max(otherScores))
             stats['VP edge'][iagent].append(VPs[iagent] - np.max(otherVPs))
         else:
             stats['wins'][iagent].append(False) 
             stats['scores'][iagent].append(scores[iagent])
             stats['VPs'][iagent].append(VPs[iagent])
-            stats['score edge'][iagent].append(scores[iagent] - np.max(scores))
             stats['VP edge'][iagent].append(VPs[iagent] - np.max(VPs))
+
+
+        if iagent == np.argmax(scores):
+            otherScores = scores.copy()
+            otherScores.pop(iagent)
+            stats['score edge'][iagent].append(scores[iagent] - np.max(otherScores))
+        else:
+            stats['score edge'][iagent].append(scores[iagent] - np.max(scores))
 
 def train(agents, n_games, verbose=False):
     n_agents = len(agents)

@@ -226,9 +226,9 @@ class GameState():
         scores = []
         VPs = []
         for player in self.playersInitOrder:
-            scores.append(player.score())
+            score = player.endGame()
+            scores.append(score)
             VPs.append(player.resources.VPs)
-            player.agent.end_game(player.score())
         return scores, VPs
 
     def __repr__(self) -> str:

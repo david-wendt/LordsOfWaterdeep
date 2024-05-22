@@ -145,9 +145,7 @@ class DQNAgent(Agent):
         # on every agent do a final update
         # at start of act, only do push if prev_state is not None else move on
 
-        state_tensor = torch.randn(100)
-        action_mask = torch.zeros(10)
-        # state_tensor, action_mask = featurize.featurize(gameState, playerState, actions)
+        state_tensor, action_mask = featurize.featurize(gameState, playerState, actions)
 
         if self.prev_state is not None:
             reward = torch.tensor([score - self.prev_score], dtype=torch.float32)
