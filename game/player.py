@@ -213,4 +213,6 @@ class Player():
     def selectMove(self, gameState, actions):
         if isinstance(self.agent, ManualAgent):
             print("\n\nCURRENT PLAYER:", self.name, "(manual agent) must select a move.")
-        return self.agent.act(gameState, self, actions)
+            return self.agent.act(gameState, self, actions)
+        score = self.score()
+        return self.agent.act(gameState, self, actions, score)

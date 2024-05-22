@@ -1,4 +1,5 @@
-import numpy as np
+import torch
+
 from game.game_info import RESOURCES, QUESTS, QUEST_TYPES, DEFAULT_BUILDINGS, Quest, NUM_POSSIBLE_BUILDINGS
 from game.player import Player
 from game.board import BoardState
@@ -162,6 +163,14 @@ def featurizeAction(gameState: GameState, action: str):
     else:
         raise ValueError("No other possible actions.")
 
+def featurize(gameState, playerState, actions) -> tuple[torch.Tensor, torch.Tensor]:
+    stateFeatures = torch.cat([
+        featurizeGameState(gameState),
+        featurizePlayer(playerState)
+    ])
+
+    actionMask = getActionMask(actions)
+    return torch.cat([stateFeatures, actionMask]), actionMask
 
 # Note for self later: Although one large CNN would not work, consider forcing 
 # the first layer to be the same for each quest block, for each player block, etc.
