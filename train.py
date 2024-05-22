@@ -16,7 +16,7 @@ def appendStats(stats, scores, VPs, n_agents):
 
     # Collect stats
     for iagent in range(n_agents):
-        stats['score'][iagent].append(scores[iagent])
+        stats['scores'][iagent].append(scores[iagent])
         stats['VPs'][iagent].append(VPs[iagent])
         
         if iagent == np.argmax(VPs):
@@ -50,25 +50,28 @@ def train(agents, n_games):
     for igame in range(n_games):
         game = GameState(agents, numRounds=4)
         scores,VPs = game.runGame() 
+        print(scores)
         # TODO: Implement some logic in runGame
         # to save stats to agents
         appendStats(stats, scores, VPs, n_agents)
     
     mean_stats = {
-        np.mean(stats[statname][iagent])
-        for iagent in range(len(agents)) 
+    statname: [
+            str(np.mean(stats[statname][iagent])) 
+            for iagent in range(len(agents))
+        ]
         for statname in STATS
     }
+    print(mean_stats)
     return mean_stats
 
     
 def main():
     deepQAgent = DQNAgent(
-        DeepQNet(...),
-        eps_start, # Maybe set some defaults for these?
-        eps_end,
-        eps_decay,
-        n_actions
+        DeepQNet(observation_dim=100, n_actions=10), # fix these as constants computed in featurize
+        eps_start=.8, # Maybe set some defaults for these?
+        eps_decay=1000,
+        n_actions=10
     )
 
     randomAgent = RandomAgent()
@@ -89,3 +92,6 @@ def main():
             "Mean score edge: " + ", ".join(mean_stats['score edge']),
             "Mean VP edge: " + ", ".join(mean_stats['VP edge']),
         ])
+
+if __name__ == "__main__":
+    main()

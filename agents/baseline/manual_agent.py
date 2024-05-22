@@ -3,7 +3,7 @@ from printing_utils import header
 import random 
 
 class ManualAgent(Agent):
-    def act(self, gameState, playerState, actions) -> int:
+    def act(self, gameState, playerState, actions, score) -> int:
         print(header('GAME STATE') + f'\n{gameState}\n')
         print(header('PLAYER STATE') + f'\n{playerState._private_repr()}\n')
         print(header('ACTIONS AVAILABLE'))
