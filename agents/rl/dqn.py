@@ -40,9 +40,9 @@ class DeepQNet(nn.Module):
     # started from code from https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html and adjusted
     def optimize_model(self):
         # get BATCH_SIZE
-        if len(self.memory) < BATCH_SIZE:
+        if len(self.memory) < self.batch_size:
             return
-        transitions = self.memory.sample(BATCH_SIZE)
+        transitions = self.memory.sample(self.batch_size)
         # Transpose the batch (see https://stackoverflow.com/a/19343/3343043 for
         # detailed explanation). This converts batch-array of Transitions
         # to Transition of batch-arrays.
@@ -68,7 +68,7 @@ class DeepQNet(nn.Module):
         # on the "older" target_net; selecting their best reward with max(1).values
         # This is merged based on the mask, such that we'll have either the expected
         # state value or 0 in case the state was final.
-        next_state_values = torch.zeros(BATCH_SIZE, device=device)
+        next_state_values = torch.zeros(self.batch_size, device=device)
         with torch.no_grad():
             next_state_values[non_final_mask] = self.target_network(non_final_next_states).max(1).values
         # Compute the expected Q values
