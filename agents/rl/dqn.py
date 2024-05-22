@@ -5,7 +5,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from network_utils import build_mlp, device, np2torch
+from .network_utils import build_mlp, device, np2torch
 import torch.optim as optim
 import random
 from collections import namedtuple
@@ -25,7 +25,7 @@ class DeepQNet(nn.Module):
         self.batch_size = batch_size
 
         # to know how often to go to target
-        self.epsisode = 0
+        self.episode = 0
         self.target_reset_freq = 1000
 
         # Use this to remember the previous state
@@ -34,9 +34,10 @@ class DeepQNet(nn.Module):
 
         self.policy_network = build_mlp(observation_dim, n_actions, n_hidden_layers, hidden_layer_size)
         # use this line periodically (every sum number of episodes)
-        self.target_network = self.policy_network.load_state_dict(self.policy_network.state_dict())
+        self.target_network = build_mlp(observation_dim, n_actions, n_hidden_layers, hidden_layer_size)
+        self.target_network.load_state_dict(self.policy_network.state_dict())
 
-        self.optimizer = optim.AdamW(self.mlp.parameters(), lr=learning_rate)
+        self.optimizer = optim.AdamW(self.policy_network.parameters(), lr=learning_rate)
 
         # not sure if this should be a member here
         self.memory = ReplayMemory(replay_capacity)
@@ -45,7 +46,7 @@ class DeepQNet(nn.Module):
         return self.policy_network(x)
     
     def update_to_target(self):
-        self.target_network = self.policy_network.load_state_dict(self.policy_network.state_dict())
+        self.target_network.load_state_dict(self.policy_network.state_dict())
     
     # started from code from https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html and adjusted
     def optimize_model(self):
@@ -62,11 +63,13 @@ class DeepQNet(nn.Module):
         # (a final state would've been the one after which simulation ended)
         non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
                                             batch.next_state)), device=device, dtype=torch.bool)
-        non_final_next_states = torch.cat([s for s in batch.next_state
+        non_final_next_states = torch.stack([s for s in batch.next_state
                                                     if s is not None])
-        state_batch = torch.cat(batch.state)
-        action_batch = torch.cat(batch.action)
-        reward_batch = torch.cat(batch.reward)
+        state_batch = torch.stack(batch.state) # should be cat?
+
+        print(batch.action)
+        action_batch = torch.stack(batch.action) # should be cat?
+        reward_batch = torch.stack(batch.reward)
 
         # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
         # columns of actions taken. These are the actions which would've been taken
@@ -93,7 +96,7 @@ class DeepQNet(nn.Module):
         self.optimizer.zero_grad()
         loss.backward()
         # In-place gradient clipping
-        torch.nn.utils.clip_grad_value_(self.policy_net.parameters(), 100)
+        torch.nn.utils.clip_grad_value_(self.policy_network.parameters(), 100)
         self.optimizer.step()
 
 
@@ -127,6 +130,8 @@ class DQNAgent(Agent):
         self.eps_decay = eps_decay
         self.n_actions = n_actions
         self.prev_score = 0.0
+        self.prev_state = None
+        self.prev_action = None
 
     
     # TODO - check on this?
@@ -136,21 +141,25 @@ class DQNAgent(Agent):
         self.dqn.optimize_model()
         
         self.prev_state = None
+        self.prev_action = None
     
     # epsilon greedy policy
     def act(self, gameState, playerState, actions, score):
+        print("act")
         # at the end of the game method called end game
         # on every agent do a final update
         # at start of act, only do push if prev_state is not None else move on
 
-        state_tensor, action_mask = featurize.featurize(gameState, playerState, actions)
+        state_tensor = torch.randn(100)
+        action_mask = torch.zeros(10)
+        # state_tensor, action_mask = featurize.featurize(gameState, playerState, actions)
 
         if self.prev_state is not None:
             reward = torch.tensor([score - self.prev_score], dtype=torch.float32)
             self.dqn.memory.push(self.prev_state, self.prev_action, state_tensor, reward, action_mask)
             self.dqn.optimize_model()
 
-        self.dqn.prev_state = state_tensor
+        self.prev_state = state_tensor
         self.prev_score = score
 
         self.dqn.episode += 1
@@ -166,7 +175,9 @@ class DQNAgent(Agent):
                 action = torch.argmax(self.dqn(state_tensor) + 1e10 * (action_mask - 1)) # mask with actions_mask
         else:
             action = torch.tensor([[random.randrange(self.n_actions)]], dtype=torch.long)
-        self.prev_action = action
+        self.prev_action = action.unsqueeze(0) # add dim
+
+        return 0
         return action
         
 """

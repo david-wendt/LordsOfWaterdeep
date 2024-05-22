@@ -151,6 +151,8 @@ class GameState():
 
         # Choose a building to play an agent at
         move_idx = currentPlayer.selectMove(self, possibleMoves) 
+        print(possibleMoves)
+        print("move_idx", move_idx)
         building = possibleMoves[move_idx]
         self.boardState.buildings[building] = currentPlayer.name
         currentPlayer.agents -= 1
@@ -222,10 +224,14 @@ class GameState():
 
             if verbose:
                 print(self)
+        
+        # end game code
+        for player in self.players:
+            player.agent.end_game(player.score())
 
     def __repr__(self) -> str:
         return f"ROUNDS LEFT: {self.roundsLeft}\n\nBOARD STATE:\n{self.boardState}\nPLAYERS:" + "".join([f"{player}" for player in self.players])
 
-def main():
-    gs = GameState()
+def main(agents):
+    gs = GameState(agents, numRounds=4)
     gs.runGame(False)

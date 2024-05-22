@@ -14,3 +14,5 @@ class ManualAgent(Agent):
             choice = input("Choose an action (enter index): ")
             if choice == "": return random.randint(0,len(actions) - 1) # Random if empty
         return int(choice)
+    def end_game(self, score):
+        return
