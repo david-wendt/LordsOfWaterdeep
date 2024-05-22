@@ -166,7 +166,7 @@ def featurizeGameState(gameState: GameState, currentPlayer: Player):
     if currentPlayerIdx != 0:
         players = players[currentPlayerIdx:] + players[:currentPlayerIdx]
     assert players[0] == currentPlayer # Double-check the above
-    playerNames = map(lambda x: x.name, players)
+    playerNames = [player.name for player in players]
 
     numRoundsLeft = torch.tensor([gameState.roundsLeft])
     boardStateFeatures = featurizeBoardState(gameState.boardState, playerNames)
