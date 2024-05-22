@@ -4,7 +4,7 @@ from game.game_info import *
 from game.player import Player
 from game import board
 from game import utils 
-from agents import init_agent
+from agents.agent import Agent
 
 # Class to control the flow of the game, focused on turn progression and move 
 # options. Broadly, this class handles anything involving the game state and
@@ -17,25 +17,28 @@ class GameState():
     focused on turn progression and move 
     options. 
     '''
-    def __init__(self, numPlayers: int = 3, numRounds: int = 8, 
-                 playerNames=None, playerAgents=None):
+    def __init__(self, 
+                 agents: list[Agent], 
+                 numRounds: int = 8, 
+                 playerNames=None):
         '''
         Initialize the game state and players.
 
         Args: 
-            numPlayers: the number of players in the game
+            agents: the agent objects for the players in the game
             numRounds: the number of rounds in the game
             playerNames (optional): the names for each player
         '''
+
+        self.numPlayers = len(agents)
+        # Check that we have a valid number of players
+        assert 2 <= self.numPlayers <= 5
+
         # Initialize the remaining number of rounds
         self.roundsLeft = numRounds
 
         # Initialize the BoardState
         self.boardState = board.BoardState()
-
-        # Check that we have a valid number of players
-        assert 2 <= numPlayers <= 5
-        self.numPlayers = numPlayers
 
         # Set default player names
         if playerNames is None:
@@ -43,19 +46,13 @@ class GameState():
                 "PlayerOne", "PlayerTwo", 
                 "PlayerThree", "PlayerFour",
                 "PlayerFive"
-            ][:numPlayers]
+            ][:self.numPlayers]
         else:
             assert len(playerNames) == self.numPlayers
 
         if len(playerNames) != len(set(playerNames)):
             raise ValueError("Need to have unique player names")
         assert REASSIGNED not in playerNames
-
-        if playerAgents is None:
-            self.playerAgents = ["Manual"] * self.numPlayers
-        else:
-            assert len(playerAgents) == self.numPlayers
-            self.playerAgents = playerAgents
         
         # Shuffle the lord cards
         shuffled_lord_cards = LORD_CARDS.copy()
@@ -64,10 +61,10 @@ class GameState():
         # Initialize the players
         self.players = [Player(
             name=playerNames[i],
-            agent=init_agent.init_agent(self.playerAgents[i]),
-            numAgents=agentsPerPlayer(numPlayers),
+            agent=agent,
+            numAgents=agentsPerPlayer(self.numPlayers),
             lordCard=shuffled_lord_cards[i]
-        ) for i in range(numPlayers)]
+        ) for i,agent in enumerate(agents)]
 
         self.namesToPlayers = {player.name: player 
                                for player in self.players}
