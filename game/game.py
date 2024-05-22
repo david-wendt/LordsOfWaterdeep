@@ -199,7 +199,7 @@ class GameState():
             if move_idx > 0:
                 currentPlayer.completeQuest(completableQuests[move_idx - 1])
 
-    def runGame(self, verbose):
+    def runGame(self, verbose=False):
         '''Umbrella function to run the game.'''
         while self.roundsLeft > 0:
             # Keep looping until a player runs out of agents
