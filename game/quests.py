@@ -16,6 +16,8 @@ QUEST_TYPES = [ARCANA, PIETY, SKULLDUGGERY, WARFARE, COMMERCE]
 
 LETTER_TO_QUEST_TYPE = {qtype[0]: qtype for qtype in QUEST_TYPES}
 
+DO_NOT_COMPLETE_QUEST = "Do not complete a quest"
+
 @dataclass(frozen=True)
 class Quest:
     ''' Class representing a quest '''

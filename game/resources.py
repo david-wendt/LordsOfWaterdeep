@@ -99,3 +99,13 @@ class FixedResources:
             gold=self.gold,
             VPs=self.VPs
         )
+
+
+STANDARD_RESOURCE_BUNDLES = [
+    Resources(wizards=1),
+    Resources(clerics=1),
+    Resources(fighters=2),
+    Resources(rogues=2),
+    Resources(gold=4)
+]
+N_RESOURCE_TYPES = len(STANDARD_RESOURCE_BUNDLES) # cubes + gold, not VP/Q/I

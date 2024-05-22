@@ -17,6 +17,17 @@ N_MAX_ACTIVE_QUESTS = 10
 # different intrigue cards
 # N_MAX_INTRIGUE_CARDS = 10
 
+N_ACTIONS = (len(DEFAULT_BUILDINGS)
+    # + len(ADDITIONAL_BUILDINGS)
+    + NUM_CLIFFWATCH_QUESTS # Number of quests to chose from cliffwatch
+    # + N_MAX_INTRIGUE_CARDS # TODO (later)
+    + N_RESOURCE_TYPES # Number of reseources to choose from the single intrigue
+        # We have implemented so far
+    + N_MAX_ACTIVE_QUESTS # For choosing a quest to complete
+    + 1 # Choose not to complete a quest
+    # + N_BUILDERS_HALL_BUILDINGS # Buildings at Builder's Hall to build
+)
+
 def featurizeResources(
         resources: Resources | FixedResources,
         includeVP: bool,
@@ -209,7 +220,69 @@ def featurizeGameState(gameState: GameState, currentPlayer: Player):
 #         raise ValueError("No other possible actions.")
     
 def getActionMask(actions):
-    raise NotImplementedError
+    ''' Get a mask of which actions are currently availbale. 
+    
+    should have length 
+    N_ACTIONS = (len(DEFAULT_BUILDINGS)
+        + NUM_CLIFFWATCH_QUESTS # Number of quests to chose from cliffwatch
+        + N_RESOURCE_TYPES # Number of reseources to choose from the single intrigue
+            # We have implemented so far
+        + N_MAX_ACTIVE_QUESTS # For choosing a quest to complete
+        + 1 # Choose not to complete a quest
+    )   
+    so that first len(DEFAULT_BUILDINGS) entries 
+        correspond to choosing a building to place an action,
+    the next NUM_CLIFFWATCH_QUESTS entries 
+        correspond to choosing a quest from cliffwatch
+    the next N_RESOURCE_TYPES entries correspond to
+        choosing a resource from an intrigue card
+    and the final 1 + N_MAX_ACTIVE_QUESTS correspond 
+        to choosing to not complete a quest or 
+        to choosing an active quest to complete 
+        (respectively)
+    '''
+
+
+    actionMask = torch.zeros(N_ACTIONS)
+    if isinstance(actions[0], Building):
+        # Move type: Choose a building in which to place an agent
+        for building in actions:
+            assert isinstance(building, Building)
+            action_idx = DEFAULT_BUILDINGS.index(building)
+            # TODO (later): also index from built additional buildings
+            # (and change + len(DEFAULT_BUILDINGS) shifts below!!)
+            actionMask[action_idx] = 1
+
+    elif isinstance(actions[0], Quest):
+        # Choose one of four quests from Cliffwatch Inn
+        assert len(actions) == NUM_CLIFFWATCH_QUESTS
+        for i,quest in enumerate(actions):
+            assert isinstance(quest, Quest)
+        
+        actionMask[
+            len(DEFAULT_BUILDINGS)
+            : len(DEFAULT_BUILDINGS) + NUM_CLIFFWATCH_QUESTS
+        ] = torch.ones(NUM_CLIFFWATCH_QUESTS)
+
+    elif isinstance(actions[0], Resources):
+        # Choose a resource bundle to receive from an intrigue card
+        assert actions == STANDARD_RESOURCE_BUNDLES
+        actionMask[
+            len(DEFAULT_BUILDINGS) + NUM_CLIFFWATCH_QUESTS
+            : len(DEFAULT_BUILDINGS) + NUM_CLIFFWATCH_QUESTS
+             + len(STANDARD_RESOURCE_BUNDLES)
+        ] = torch.ones(len(STANDARD_RESOURCE_BUNDLES))
+
+    elif actions[0] == DO_NOT_COMPLETE_QUEST:
+        for i,action in enumerate(actions):
+            if i != 0: assert isinstance(action, Quest)
+    
+        actionMask[len(DEFAULT_BUILDINGS) 
+            + NUM_CLIFFWATCH_QUESTS
+            + len(STANDARD_RESOURCE_BUNDLES) 
+        ] = torch.ones(len(actions))
+
+    return actionMask
 
 def featurize(gameState, currentPlayer, actions) -> tuple[torch.Tensor, torch.Tensor]:
     stateFeatures = featurizeGameState(gameState, currentPlayer)
