@@ -62,7 +62,7 @@ def featurizeQuest(quest: Quest):
     # Appent feature vectors for requirements and rewards
     return torch.cat([typeVector, 
                       featurizeResources(quest.requirements, includeVP=False), 
-                      featurizeResources(quest.rewards, includeVP=True, includeQ=True)])
+                      featurizeResources(quest.rewards, includeVP=True, includeQI=True)])
 
 # The length of a quest feature vector (for use in zero-blocks)
 QUEST_FEATURE_LEN = featurizeQuest(QUESTS[0]).size(0)

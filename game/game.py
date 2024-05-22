@@ -66,6 +66,8 @@ class GameState():
             lordCard=shuffled_lord_cards[i]
         ) for i,agent in enumerate(agents)]
 
+        self.playersInitOrder = self.players.copy()
+
         self.namesToPlayers = {player.name: player 
                                for player in self.players}
 
@@ -222,10 +224,12 @@ class GameState():
         
         # end game code
         scores = []
-        for player in self.players: # TODO - go in initial order
+        VPs = []
+        for player in self.playersInitOrder:
             scores.append(player.score())
+            VPs.append(player.resources.VPs)
             player.agent.end_game(player.score())
-        return scores, scores # TODO - make one VPs
+        return scores, VPs
 
     def __repr__(self) -> str:
         return f"ROUNDS LEFT: {self.roundsLeft}\n\nBOARD STATE:\n{self.boardState}\nPLAYERS:" + "".join([f"{player}" for player in self.players])

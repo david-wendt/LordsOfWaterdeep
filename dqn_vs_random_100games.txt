@@ -1,0 +1,6 @@
+Agent types:		Deep Q Agent,	Random Agent
+Win rate:			0.45,		0.55
+Mean scores:		15.07,		16.22
+Mean VPs:			0.0,		6.72
+Mean score edge:	-1.18,		1.12
+Mean VP edge:		-6.72,		6.72

@@ -1,5 +1,7 @@
 from game import game
-import torch 
+from agents.baseline.manual_agent import ManualAgent
+from agents.baseline.random_agent import RandomAgent
 
 if __name__ == "__main__":
-    game.main()
+    agents = [ManualAgent(), RandomAgent()]
+    game.main(agents)
