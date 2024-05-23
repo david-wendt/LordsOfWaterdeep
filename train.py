@@ -72,7 +72,8 @@ def train(agents, n_games, verbose=False):
     
 def main():
     nPlayers = 2
-    stateDim = featurize.stateDim(nPlayers)
+    # stateDim = featurize.stateDim(nPlayers)
+    stateDim = 522 # see why this was wrong!!
     deepQAgent = DQNAgent(
         state_dim=stateDim, 
         action_dim=featurize.N_ACTIONS

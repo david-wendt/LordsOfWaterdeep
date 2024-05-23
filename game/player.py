@@ -106,6 +106,14 @@ class Player():
 
         self.getResources(negResources)
 
+    def removeAllResources(self):
+        ''' Remove all resources except for VPs '''
+        self.resources.clerics  = 0
+        self.resources.wizards  = 0
+        self.resources.rogues   = 0
+        self.resources.fighters = 0
+        self.resources.gold     = 0
+
     def getAgent(self):
         '''Receive an additional agent (for future use).'''
         self.maxAgents += 1
@@ -218,19 +226,19 @@ class Player():
         return self.agent.act(gameState, self, actions, score)
     
     def convertResourcesToVPs(self):
-        self.VPs += (
-            self.resources.clerics
+        self.resources.VPs += (
+            + self.resources.clerics
             + self.resources.wizards
             + self.resources.fighters
             + self.resources.rogues
             + self.resources.gold // 2
         )
-        self.removeResources(self.resources)
+        self.removeAllResources()
 
     def lordCardToVPs(self):
         for quest in self.completedQuests:
             if quest.type in self.lordCard:
-                self.VPs += 4
+                self.resources.VPs += 4
 
     def clear(self):
         self.activeQuests = []
@@ -239,12 +247,16 @@ class Player():
         self.hasCastle = False 
 
     def endGame(self): 
+        # Final score to eval
+        score = self.score()
+
         # End game VPs
         self.convertResourcesToVPs()
         self.lordCardToVPs()
         self.clear()
 
-        # Final score to agent/eval
-        score = self.score()
-        self.agent.end_game(score)
+        # TODO: Remove this and pass VPs (once we know this assert regularly passes)
+        finalScore = self.score()
+        assert finalScore == self.resources.VPs
+        self.agent.end_game(finalScore)
         return score

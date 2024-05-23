@@ -39,7 +39,8 @@ class DeepQNet(nn.Module):
         print("INITIALIZING DEEP Q NETWORK")
         print("\tInput size (state dim):", input_dim)
         print("\tOutput size (action dim):", output_dim)
-        print("\nHidden layer sizes:", hidden_layer_sizes)
+        print("\tHidden layer sizes:", hidden_layer_sizes)
+        print() # Newline
 
         layer_sizes = hidden_layer_sizes + [output_dim]
         n_layers = len(layer_sizes)
@@ -212,6 +213,7 @@ class DQNAgent(Agent):
         # at start of act, only do push if prev_state is not None else move on
 
         state_tensor, action_mask = featurize.featurize(gameState, playerState, actions)
+        assert action_mask.sum() == len(actions)
 
         if self.prev_state is not None:
             reward = torch.tensor([score - self.prev_score], dtype=torch.float32)
@@ -228,14 +230,19 @@ class DQNAgent(Agent):
         # call featurize (state, list of actions)
         # gives features, binary encoding of available actions
         # self.eps = self.eps * math.exp(-1. / self.eps_decay) # Old version
-        self.eps *= self.eps_decay
+        self.eps *= self.eps_decay # I think this is conceptually simpler - DW
+
+
+        available_action_indices = np.arange(self.action_dim)[action_mask.bool()].tolist()
         sample = random.random()
         if sample > self.eps:
             with torch.no_grad():
-                action = torch.argmax(self.q_net(state_tensor) + 1e10 * (action_mask - 1)) # mask with actions_mask
+                action_idx = torch.argmax(self.q_net(state_tensor) + 1e10 * (action_mask - 1)) # mask with actions_mask
+                available_action_idx = available_action_indices.index(action_idx)
         else:
-            action = torch.tensor(random.randrange(self.action_dim), dtype=torch.long)
+            available_action_idx = torch.randint(0,len(actions),(1,))
+            action_idx = torch.tensor(available_action_indices[available_action_idx])
 
-        self.prev_action = action.unsqueeze(0) # add dim
+        self.prev_action = action_idx.unsqueeze(0) # add dim
 
-        return action.item()
+        return available_action_idx

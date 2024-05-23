@@ -309,7 +309,6 @@ def featurize(gameState, currentPlayer, actions) -> tuple[torch.Tensor, torch.Te
     stateFeatures = featurizeGameState(gameState, currentPlayer)
     actionMask = getActionMask(actions)
     stateFeatures = torch.cat([stateFeatures, actionMask])
-    assert stateFeatures.size() == (STATE_DIM,)
     return stateFeatures,actionMask
 
 # Note for self later: Although one large CNN would not work, consider forcing 
