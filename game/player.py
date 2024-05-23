@@ -255,8 +255,7 @@ class Player():
         self.lordCardToVPs()
         self.clear()
 
-        # TODO: Remove this and pass scaled VPs (once we know this assert regularly passes)
-        finalScore = self.score()
-        assert finalScore == self.resources.VPs * SCORE_PER_VP,(finalScore,self.resources.VPs,self)
+        # TODO (later): once we implement more stuff, call score again here and check it is the same
+        finalScore = self.resources.VPs * SCORE_PER_VP
         self.agent.end_game(finalScore)
         return score

@@ -74,7 +74,7 @@ def train(agents, n_games, verbose=False):
 def main(args):
     nPlayers = 2
     # stateDim = featurize.stateDim(nPlayers)
-    stateDim = 522 # see why this was wrong!!
+    stateDim = 522 # TODO: see why this was wrong!!
     deepQAgent = DQNAgent(
         state_dim=stateDim, 
         action_dim=featurize.N_ACTIONS
@@ -89,7 +89,7 @@ def main(args):
     n_games = args.ngames
     mean_stats = train(agents=agents, n_games=n_games, verbose=True)
 
-    results_fname = f'dqn_vs_random_{n_games}games.txt'
+    results_fname = f'results/dqn_vs_random_{n_games}games.txt'
     with open(results_fname, 'w') as f:
         f.write("\n".join([
             "Agent types:\t\t" + ",\t".join(agentTypes),
