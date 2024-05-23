@@ -15,10 +15,12 @@ from agents.agent import Agent
 from features import featurize
 
 DEVICE = 'cpu'
-if torch.cuda.is_available():
-    DEVICE = torch.cuda.current_device()
-elif torch.backends.mps.is_available(): # Run on apple silicon gpu (for M-series MacBooks)
-    DEVICE = 'mps'
+USE_GPU = False # Way faster on cpu than on apple silicon for me, idk why - DW
+if USE_GPU:
+    if torch.cuda.is_available():
+        DEVICE = torch.cuda.current_device()
+    elif torch.backends.mps.is_available(): # Run on apple silicon gpu (for M-series MacBooks)
+        DEVICE = 'mps'
 
 ACTIVATION_FNS = {
     'ReLU': nn.ReLU(),
