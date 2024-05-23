@@ -5,7 +5,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from .network_utils import build_mlp, device, np2torch
+from .network_utils import build_mlp
 import torch.optim as optim
 import random
 from collections import namedtuple
@@ -15,24 +15,55 @@ import math
 from agents.agent import Agent
 from features import featurize
 
+DEVICE = 'cpu'
+if torch.cuda.is_available():
+    DEVICE = torch.cuda.current_device()
+elif torch.backends.mps.is_available(): # Run on apple silicon gpu (for M-series MacBooks)
+    DEVICE = 'mps'
+
+ACTIVATION_FNS = {
+    'ReLU': nn.ReLU(),
+    'LeakyReLU': nn.LeakyReLU()
+}
+
 class DeepQNet(nn.Module):
-    def __init__(self, observation_dim, n_actions, 
-                 n_hidden_layers=2, hidden_layer_size=64,
-                 discount_factor=1., replay_capacity=1000, batch_size=128):
+    def __init__(self, 
+            input_dim, 
+            output_dim, 
+            hidden_layer_sizes=[256, 128],
+            layernorm='layernorm',
+            activation='LeakyReLU'
+        ):
+
         super(DeepQNet, self).__init__()
 
-        self.policy_network = build_mlp(observation_dim, n_actions, n_hidden_layers, hidden_layer_size)
-        # use this line periodically (every sum number of episodes)
-        self.target_network = build_mlp(observation_dim, n_actions, n_hidden_layers, hidden_layer_size)
-        self.target_network.load_state_dict(self.policy_network.state_dict())
+        print("INITIALIZING DEEP Q NETWORK")
+        print("\tInput size (state dim):", input_dim)
+        print("\tOutput size (action dim):", output_dim)
+        print("\nHidden layer sizes:", hidden_layer_sizes)
+
+        layer_sizes = hidden_layer_sizes + [output_dim]
+        n_layers = len(layer_sizes)
+
+        layers = [nn.Linear(input_dim, hidden_layer_sizes[0])]
+        activation_fn = ACTIVATION_FNS[activation]
+
+        for i in range(n_layers-1):
+            if layernorm == 'layernorm' or layernorm is True:
+                layers.append(nn.LayerNorm(layer_sizes[i]))
+            elif layernorm == 'batchnorm':
+                layers.append(nn.BatchNorm1d(layer_sizes[i]))
+            else:
+                if layernorm is not None:
+                    raise ValueError(f'Unknown layer norm: {layernorm}')
+                
+            layers.append(activation_fn)
+            layers.append(nn.Linear(layer_sizes[i], layer_sizes[i+1]))
+
+        self.mlp = nn.Sequential(*layers)
 
     def forward(self, x):
-        return self.policy_network(x)
-    
-    def update_to_target(self):
-        self.target_network.load_state_dict(self.policy_network.state_dict())
-    
-    
+        return self.mlp(x)
 
 
 # https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html
@@ -58,15 +89,47 @@ class ReplayMemory(object):
 
 class DQNAgent(Agent):
     # can consider what other params to include
-    def __init__(self, dqn: DeepQNet, eps_start, eps_decay, n_actions, learning_rate=0.001, replay_capacity=1000, batch_size=128, discount_factor=1):
-        self.dqn = dqn 
+    def __init__(
+        self, 
+        state_dim, 
+        action_dim, 
+        hidden_layer_sizes=[256, 128],
+        layernorm='layernorm',
+        activation='LeakyReLU',
+        eps_start=0.5, 
+        eps_decay=0.99, 
+        learning_rate=0.001, 
+        replay_capacity=1000, 
+        batch_size=128, 
+        discount_factor=1
+    ):
+
+        # TODO: Package DQN params in a dict that gets passed in after being read from a config
+        self.q_net = DeepQNet(
+            input_dim=state_dim,
+            output_dim=action_dim,
+            hidden_layer_sizes=hidden_layer_sizes,
+            layernorm=layernorm,
+            activation=activation
+        ) 
+
+        self.target_net = DeepQNet(
+            input_dim=state_dim,
+            output_dim=action_dim,
+            hidden_layer_sizes=hidden_layer_sizes,
+            layernorm=layernorm,
+            activation=activation
+        ) 
+
+        self.update_target()
+
         self.optimizer = optim.AdamW(self.dqn.policy_network.parameters(), lr=learning_rate)
         self.memory = ReplayMemory(replay_capacity)
         self.batch_size=batch_size
 
         self.eps = eps_start
         self.eps_decay = eps_decay
-        self.n_actions = n_actions
+        self.action_dim = action_dim
         self.prev_score = 0.0
         self.prev_state = None
         self.prev_action = None
@@ -76,6 +139,9 @@ class DQNAgent(Agent):
         # to know how often to go to target
         self.episode = 0
         self.target_reset_freq = 1000
+
+    def update_target(self):
+        self.target_net.load_state_dict(self.q_net.state_dict())
 
     # started from code from https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html and adjusted
     def optimize_model(self):
@@ -91,7 +157,7 @@ class DQNAgent(Agent):
         # Compute a mask of non-final states and concatenate the batch elements
         # (a final state would've been the one after which simulation ended)
         non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
-                                            batch.next_state)), device=device, dtype=torch.bool)
+                                            batch.next_state)), device=DEVICE, dtype=torch.bool)
         non_final_next_states = torch.stack([s for s in batch.next_state
                                                     if s is not None])
         state_batch = torch.stack(batch.state) # should be cat?
@@ -110,7 +176,7 @@ class DQNAgent(Agent):
         # on the "older" target_net; selecting their best reward with max(1).values
         # This is merged based on the mask, such that we'll have either the expected
         # state value or 0 in case the state was final.
-        next_state_values = torch.zeros(self.batch_size, device=device)
+        next_state_values = torch.zeros(self.batch_size, device=DEVICE)
 
         with torch.no_grad():
             # TODO - need to mask with action_mask
@@ -161,13 +227,14 @@ class DQNAgent(Agent):
 
         # call featurize (state, list of actions)
         # gives features, binary encoding of available actions
-        self.eps = self.eps * math.exp(-1. / self.eps_decay)
+        # self.eps = self.eps * math.exp(-1. / self.eps_decay) # Old version
+        self.eps *= self.eps_decay
         sample = random.random()
         if sample > self.eps:
             with torch.no_grad():
                 action = torch.argmax(self.dqn(state_tensor) + 1e10 * (action_mask - 1)) # mask with actions_mask
         else:
-            action = torch.tensor(random.randrange(self.n_actions), dtype=torch.long)
+            action = torch.tensor(random.randrange(self.action_dim), dtype=torch.long)
 
         self.prev_action = action.unsqueeze(0) # add dim
 

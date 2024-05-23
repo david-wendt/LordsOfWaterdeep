@@ -71,9 +71,31 @@ for quest in QUESTS:
     assert len(shape) == 1
     assert shape[0] == QUEST_FEATURE_LEN
 
+def stateDim(nPlayers: int) -> int:
+    boardStateDim = (
+        len(DEFAULT_BUILDINGS) * nPlayers
+        + QUEST_FEATURE_LEN * NUM_CLIFFWATCH_QUESTS
+    )
+
+    privateInfoDim = len(QUEST_TYPES) # Lord card
+
+    playerDim = (
+        3 # one each for agents/intrigues/castle
+        + 6 # Resources + VP
+        + len(QUEST_TYPES) # Completed quests
+        + N_MAX_ACTIVE_QUESTS * QUEST_FEATURE_LEN # Active quests
+    )
+
+    return ( # Comments here are lines from gameState
+        1 # numRoundsLeft = torch.tensor([gameState.roundsLeft])
+        + boardStateDim # boardStateFeatures = featurizeBoardState(gameState.boardState, playerNames)
+        + privateInfoDim # currentPlayerPrivateInfo = featurizePrivatePlayerInfo(currentPlayer)
+        + nPlayers * playerDim # playerFeatures = [featurizePlayer(player) for player in players]
+    )
+
 def featurizePlayer(player: Player):
     '''Featurize a player state.'''
-    # One element for number of agents
+    # One element each for number of agents/intrigues/castle
     agentsIntriguesCastle = torch.tensor([
         player.agents, len(player.intrigues), player.hasCastle])
 
@@ -242,7 +264,6 @@ def getActionMask(actions):
         (respectively)
     '''
 
-
     actionMask = torch.zeros(N_ACTIONS)
     if isinstance(actions[0], Building):
         # Move type: Choose a building in which to place an agent
@@ -287,7 +308,9 @@ def getActionMask(actions):
 def featurize(gameState, currentPlayer, actions) -> tuple[torch.Tensor, torch.Tensor]:
     stateFeatures = featurizeGameState(gameState, currentPlayer)
     actionMask = getActionMask(actions)
-    return torch.cat([stateFeatures, actionMask]), actionMask
+    stateFeatures = torch.cat([stateFeatures, actionMask])
+    assert stateFeatures.size() == (STATE_DIM,)
+    return stateFeatures,actionMask
 
 # Note for self later: Although one large CNN would not work, consider forcing 
 # the first layer to be the same for each quest block, for each player block, etc.

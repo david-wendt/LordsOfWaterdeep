@@ -4,6 +4,7 @@ from tqdm import tqdm
 from agents.rl.dqn import DeepQNet, DQNAgent
 from agents.baseline.random_agent import RandomAgent
 from game.game import GameState
+from features import featurize
 
 STATS = [
     'wins', # True if won, False if lost
@@ -70,8 +71,10 @@ def train(agents, n_games, verbose=False):
 
     
 def main():
+    nPlayers = 2
+    stateDim = featurize.stateDim(nPlayers)
     deepQAgent = DQNAgent(
-        DeepQNet(observation_dim=100, n_actions=10), # fix these as constants computed in featurize
+        DeepQNet(state_dim=stateDim, n_actions=featurize.N_ACTIONS),
         eps_start=.8, # Maybe set some defaults for these?
         eps_decay=1000,
         n_actions=10
@@ -80,8 +83,9 @@ def main():
     randomAgent = RandomAgent()
 
     agentTypes = ['Deep Q Agent', 'Random Agent']
-
     agents = [deepQAgent, randomAgent]
+    assert len(agents) == len(agentTypes) == nPlayers
+
     n_games = 1000
     mean_stats = train(agents=agents, n_games=n_games, verbose=True)
 
