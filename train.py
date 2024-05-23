@@ -1,5 +1,6 @@
 import numpy as np
 from tqdm import tqdm
+import argparse
 
 from agents.rl.dqn import DeepQNet, DQNAgent
 from agents.baseline.random_agent import RandomAgent
@@ -70,7 +71,7 @@ def train(agents, n_games, verbose=False):
     return mean_stats
 
     
-def main():
+def main(args):
     nPlayers = 2
     # stateDim = featurize.stateDim(nPlayers)
     stateDim = 522 # see why this was wrong!!
@@ -85,7 +86,7 @@ def main():
     agents = [deepQAgent, randomAgent]
     assert len(agents) == len(agentTypes) == nPlayers
 
-    n_games = 1000
+    n_games = args.ngames
     mean_stats = train(agents=agents, n_games=n_games, verbose=True)
 
     results_fname = f'dqn_vs_random_{n_games}games.txt'
@@ -100,4 +101,9 @@ def main():
         ]))
 
 if __name__ == "__main__":
-    main()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--ngames", type=int, default=1e3)
+    args = parser.parse_args()
+    
+    main(args)
