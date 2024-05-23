@@ -74,10 +74,8 @@ def main():
     nPlayers = 2
     stateDim = featurize.stateDim(nPlayers)
     deepQAgent = DQNAgent(
-        DeepQNet(state_dim=stateDim, n_actions=featurize.N_ACTIONS),
-        eps_start=.8, # Maybe set some defaults for these?
-        eps_decay=1000,
-        n_actions=10
+        state_dim=stateDim, 
+        action_dim=featurize.N_ACTIONS
     )
 
     randomAgent = RandomAgent()

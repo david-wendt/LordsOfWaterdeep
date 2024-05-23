@@ -5,7 +5,6 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from .network_utils import build_mlp
 import torch.optim as optim
 import random
 from collections import namedtuple
@@ -88,7 +87,7 @@ class ReplayMemory(object):
         
 
 class DQNAgent(Agent):
-    # can consider what other params to include
+    # Note: Vertical code like this is nice and clean and readable - DW
     def __init__(
         self, 
         state_dim, 
@@ -123,7 +122,7 @@ class DQNAgent(Agent):
 
         self.update_target()
 
-        self.optimizer = optim.AdamW(self.dqn.policy_network.parameters(), lr=learning_rate)
+        self.optimizer = optim.AdamW(self.q_net.parameters(), lr=learning_rate)
         self.memory = ReplayMemory(replay_capacity)
         self.batch_size=batch_size
 
@@ -142,6 +141,7 @@ class DQNAgent(Agent):
 
     def update_target(self):
         self.target_net.load_state_dict(self.q_net.state_dict())
+        self.target_net.requires_grad_(False) # Freeze the target net
 
     # started from code from https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html and adjusted
     def optimize_model(self):
@@ -169,7 +169,7 @@ class DQNAgent(Agent):
         # columns of actions taken. These are the actions which would've been taken
         # for each batch state according to policy_net
         #print("seeking issue")
-        state_action_values = self.dqn.policy_network(state_batch).gather(1, action_batch)
+        state_action_values = self.q_net(state_batch).gather(1, action_batch)
         #print("seeking issue done")
         # Compute V(s_{t+1}) for all next states.
         # Expected values of actions for non_final_next_states are computed based
@@ -180,7 +180,7 @@ class DQNAgent(Agent):
 
         with torch.no_grad():
             # TODO - need to mask with action_mask
-            next_state_values[non_final_mask] = self.dqn.target_network(non_final_next_states).max(1).values
+            next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1).values
 
         # Compute the expected Q values
         expected_state_action_values = (next_state_values * self.discount_factor) + reward_batch
@@ -194,7 +194,7 @@ class DQNAgent(Agent):
         self.optimizer.zero_grad()
         loss.backward()
         # In-place gradient clipping
-        torch.nn.utils.clip_grad_value_(self.dqn.policy_network.parameters(), 100)
+        torch.nn.utils.clip_grad_value_(self.q_net.parameters(), 100)
         self.optimizer.step()
 
     def end_game(self, score):
@@ -223,7 +223,7 @@ class DQNAgent(Agent):
 
         self.episode += 1
         if self.episode % self.target_reset_freq == 0:
-            self.dqn.update_to_target()
+            self.update_target()
 
         # call featurize (state, list of actions)
         # gives features, binary encoding of available actions
@@ -232,11 +232,10 @@ class DQNAgent(Agent):
         sample = random.random()
         if sample > self.eps:
             with torch.no_grad():
-                action = torch.argmax(self.dqn(state_tensor) + 1e10 * (action_mask - 1)) # mask with actions_mask
+                action = torch.argmax(self.q_net(state_tensor) + 1e10 * (action_mask - 1)) # mask with actions_mask
         else:
             action = torch.tensor(random.randrange(self.action_dim), dtype=torch.long)
 
         self.prev_action = action.unsqueeze(0) # add dim
 
-        return 0
         return action.item()
