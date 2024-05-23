@@ -111,7 +111,7 @@ class DQNAgent(Agent):
             hidden_layer_sizes=hidden_layer_sizes,
             layernorm=layernorm,
             activation=activation
-        ) 
+        ).to(DEVICE)
 
         self.target_net = DeepQNet(
             input_dim=state_dim,
@@ -119,7 +119,7 @@ class DQNAgent(Agent):
             hidden_layer_sizes=hidden_layer_sizes,
             layernorm=layernorm,
             activation=activation
-        ) 
+        ).to(DEVICE)
 
         self.update_target()
 
@@ -160,11 +160,11 @@ class DQNAgent(Agent):
         non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
                                             batch.next_state)), device=DEVICE, dtype=torch.bool)
         non_final_next_states = torch.stack([s for s in batch.next_state
-                                                    if s is not None])
-        state_batch = torch.stack(batch.state) # should be cat?
+                                                    if s is not None]).to(DEVICE)
+        state_batch = torch.stack(batch.state).to(DEVICE) # should be cat?
 
-        action_batch = torch.stack(batch.action) # should be cat?
-        reward_batch = torch.stack(batch.reward).squeeze() # added .squeeze()
+        action_batch = torch.stack(batch.action).to(DEVICE) # should be cat?
+        reward_batch = torch.stack(batch.reward).squeeze().to(DEVICE) # added .squeeze()
 
         # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
         # columns of actions taken. These are the actions which would've been taken
@@ -199,7 +199,7 @@ class DQNAgent(Agent):
         self.optimizer.step()
 
     def end_game(self, score):
-        reward = torch.tensor([score - self.prev_score], dtype=torch.float32)
+        reward = torch.tensor([score - self.prev_score], dtype=torch.float32).to(DEVICE)
         self.memory.push(self.prev_state, self.prev_action, None, reward, None)
         self.optimize_model()
         
@@ -213,10 +213,12 @@ class DQNAgent(Agent):
         # at start of act, only do push if prev_state is not None else move on
 
         state_tensor, action_mask = featurize.featurize(gameState, playerState, actions)
+        state_tensor = state_tensor.to(DEVICE)
+        action_mask = action_mask.to(DEVICE)
         assert action_mask.sum() == len(actions)
 
         if self.prev_state is not None:
-            reward = torch.tensor([score - self.prev_score], dtype=torch.float32)
+            reward = torch.tensor([score - self.prev_score], dtype=torch.float32).to(DEVICE)
             self.memory.push(self.prev_state, self.prev_action, state_tensor, reward, action_mask)
             self.optimize_model()
 
@@ -233,7 +235,7 @@ class DQNAgent(Agent):
         self.eps *= self.eps_decay # I think this is conceptually simpler - DW
 
 
-        available_action_indices = np.arange(self.action_dim)[action_mask.bool()].tolist()
+        available_action_indices = np.arange(self.action_dim)[action_mask.cpu().bool()].tolist()
         sample = random.random()
         if sample > self.eps:
             with torch.no_grad():
@@ -241,7 +243,7 @@ class DQNAgent(Agent):
                 available_action_idx = available_action_indices.index(action_idx)
         else:
             available_action_idx = torch.randint(0,len(actions),(1,))
-            action_idx = torch.tensor(available_action_indices[available_action_idx])
+            action_idx = torch.tensor(available_action_indices[available_action_idx]).to(DEVICE)
 
         self.prev_action = action_idx.unsqueeze(0) # add dim
 
