@@ -300,7 +300,11 @@ def getActionMask(actions):
     
         actionMask[len(DEFAULT_BUILDINGS) 
             + NUM_CLIFFWATCH_QUESTS
-            + len(STANDARD_RESOURCE_BUNDLES) 
+            + len(STANDARD_RESOURCE_BUNDLES)
+            : len(DEFAULT_BUILDINGS) 
+            + NUM_CLIFFWATCH_QUESTS
+            + len(STANDARD_RESOURCE_BUNDLES)
+            + len(actions)
         ] = torch.ones(len(actions))
 
     return actionMask
