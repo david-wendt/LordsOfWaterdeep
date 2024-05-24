@@ -147,7 +147,9 @@ class DQNAgent(Agent):
         self.target_net.requires_grad_(False) # Freeze the target net
 
     # started from code from https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html and adjusted
-    def optimize_model(self):
+    def optimize_model(self, train):
+        if train != True:
+            return
         # get BATCH_SIZE
         if len(self.memory) < self.batch_size:
             return
@@ -167,6 +169,7 @@ class DQNAgent(Agent):
 
         action_batch = torch.stack(batch.action).to(DEVICE) # should be cat?
         reward_batch = torch.stack(batch.reward).squeeze().to(DEVICE) # added .squeeze()
+        action_mask_batch = torch.stack(batch.action_mask).to(DEVICE)
 
         # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
         # columns of actions taken. These are the actions which would've been taken
@@ -183,7 +186,9 @@ class DQNAgent(Agent):
 
         with torch.no_grad():
             # TODO - need to mask with action_mask
-            next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1).values
+            next_state_values[non_final_mask] = (self.target_net(non_final_next_states) + 1e10 * (action_mask_batch[non_final_mask] - 1)).max(1).values
+
+            
 
         # Compute the expected Q values
         expected_state_action_values = (next_state_values * self.discount_factor) + reward_batch
@@ -200,16 +205,16 @@ class DQNAgent(Agent):
         torch.nn.utils.clip_grad_value_(self.q_net.parameters(), 100)
         self.optimizer.step()
 
-    def end_game(self, score):
+    def end_game(self, score, train=True):
         reward = torch.tensor([score - self.prev_score], dtype=torch.float32).to(DEVICE)
-        self.memory.push(self.prev_state, self.prev_action, None, reward, None)
-        self.optimize_model()
+        self.memory.push(self.prev_state, self.prev_action, None, reward, torch.zeros(self.action_dim))
+        self.optimize_model(train)
         
         self.prev_state = None
         self.prev_action = None
     
     # epsilon greedy policy
-    def act(self, gameState, playerState, actions, score):
+    def act(self, gameState, playerState, actions, score, train=True):
         # at the end of the game method called end game
         # on every agent do a final update
         # at start of act, only do push if prev_state is not None else move on
@@ -222,7 +227,7 @@ class DQNAgent(Agent):
         if self.prev_state is not None:
             reward = torch.tensor([score - self.prev_score], dtype=torch.float32).to(DEVICE)
             self.memory.push(self.prev_state, self.prev_action, state_tensor, reward, action_mask)
-            self.optimize_model()
+            self.optimize_model(train)
 
         self.prev_state = state_tensor
         self.prev_score = score
