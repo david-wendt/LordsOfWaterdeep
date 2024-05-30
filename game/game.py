@@ -187,7 +187,7 @@ class GameState():
                 quest = self.boardState.chooseQuest(quest_idx)
                 currentPlayer.getQuest(quest)
         
-        if building.playIntrigue:
+        if isinstance(building, Building) and building.playIntrigue:
             if len(currentPlayer.intrigues) == 0:
                 raise ValueError(f'Player {currentPlayer.name} has no intrigue cards to play!')
             
@@ -207,7 +207,7 @@ class GameState():
                 assert intrigue not in INTRIGUES
                 raise ValueError(f"Unknown intrigue card: {intrigue}")
 
-        if building.buyBuilding:
+        if isinstance(building, Building) and building.buyBuilding:
             building_idx = currentPlayer.selectMove(self, self.boardState.availableBuildings)
             self.boardState.purchaseBuilding(building_idx, currentPlayer.name)
 
