@@ -310,7 +310,11 @@ def getActionMask(actions):
     elif isinstance(actions[0], str):
         assert set(actions).issubset(INTRIGUES)
         raise NotImplementedError("Choose an intrigue card")
+    
+    else:
+        raise ValueError("Unknown action type:", actions)
 
+    assert actionMask.sum() > 0
     return actionMask
 
 def featurize(gameState, currentPlayer, actions) -> tuple[torch.Tensor, torch.Tensor]:
