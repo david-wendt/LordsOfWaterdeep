@@ -83,9 +83,10 @@ class GameState():
                 player.getIntrigue(self.boardState.drawIntrigue())
             player.getResources(Resources(gold = 4 + i))
 
-        # Finally, start a new round (at this stage, just 
-        # decrements roundsLeft and places VPs on
-        # buildings at builder's hall)
+        # Finally, start a new round
+        # (decrements roundsLeft, places VPs on
+        # buildings at builder's hall, and some
+        # other logic)
         self.newRound()
 
     def printPlayers(self):
@@ -96,7 +97,8 @@ class GameState():
     def newRound(self):
         '''Reset the board at the beginning of each round.'''
         self.roundsLeft -= 1
-        # TODO (later version): put VPs on buildings at bulider's hall
+        for i in range(NUM_BUILDERS_HALL):
+            self.boardState.buildersHallVPs[i] += 1 # Place a VP on the building
 
         # Reset all buildings
         self.boardState.clearBuildings()
@@ -126,7 +128,7 @@ class GameState():
         for player in self.players:
             assert player.hasCastle == False 
 
-    def takeTurn(self, currentPlayer):
+    def takeTurn(self, currentPlayer: Player):
         '''Take a single turn in the turn order.'''
 
         # Return if you don't have any agents to play
@@ -195,6 +197,10 @@ class GameState():
             else:
                 assert intrigue not in INTRIGUES
                 raise ValueError(f"Unknown intrigue card: {intrigue}")
+
+        if building.buyBuilding:
+            building_idx = currentPlayer.selectMove(self, self.boardState.availableBuildings)
+            self.boardState.purchaseBuilding(building_idx, currentPlayer.name)
 
         # Optionally complete a quest
         completableQuests = currentPlayer.completableQuests()

@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from game.resources import FixedResources
 
+NUM_BUILDERS_HALL = 3
+
 @dataclass(frozen=True)
 class Building:
     name: str 
