@@ -180,15 +180,20 @@ class GameState():
             if len(currentPlayer.intrigues) == 0:
                 raise ValueError(f'Player {currentPlayer.name} has no intrigue cards to play!')
             
-            # TODO (later): uncomment the below once we have different intrigue cards
-            # intrigue_idx = currentPlayer.selectMove(self, currentPlayer.intrigues)
-            intrigue_idx = 0
+            intrigue_idx = currentPlayer.selectMove(self, currentPlayer.intrigues)
             intrigue = currentPlayer.intrigues.pop(intrigue_idx)
-            if intrigue == "Choice of any resource":
+            if intrigue == 'Call in a Favor':
                 resource_options = STANDARD_RESOURCE_BUNDLES
                 resource_idx = currentPlayer.selectMove(self, resource_options)
                 currentPlayer.getResources(resource_options[resource_idx])
+            elif intrigue in ['Lack of Faith', 'Ambush', 'Assassination', 'Arcane Mishap']:
+                raise NotImplementedError('Every opponent removes x, you gain y for each that could not')
+            elif intrigue == 'Free Drinks':
+                raise NotImplementedError("choose 1 opp, steal 1 adventurer")
+            elif intrigue in ['Spread the Wealth', 'Graduation Day', 'Conscription', 'Good Faith', 'Crime Wave', 'Call for Adventurers']:
+                raise NotImplementedError("Get a resource, choose 1 opp to get a resource")
             else:
+                assert intrigue not in INTRIGUES
                 raise ValueError(f"Unknown intrigue card: {intrigue}")
 
         # Optionally complete a quest

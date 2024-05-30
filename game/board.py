@@ -13,7 +13,8 @@ class BoardState():
         self.questStack = list(QUESTS).copy()
         shuffle(self.questStack)
 
-        self.intrigueStack = list(INTRIGUES)
+        self.intrigueStack = INTRIGUES * 6
+        shuffle(self.intrigueStack)
 
         # Initialize building occupation states.
         # Will be None when unoccupied, player.name when occupied 

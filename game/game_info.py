@@ -1,6 +1,7 @@
 from game.quests import * 
 from game.resources import * 
 from game.buildings import *
+from game.intrigues import *
 
 SCORE_PER_VP = 0.5 
 # 'Score' here means 'one turn's worth of value'
@@ -40,11 +41,6 @@ def agentsPerPlayer(numPlayers: int):
     if numPlayers == 5: return 2 
     else: 
         raise ValueError("Number of players must be an integer between 2 and 5, inclusive.")
-    
-INTRIGUES = [
-    'Choice of any resource', # 4 gold or 2 F/R or 1 W/C
-] * 50
-# TODO (later): figure out what to do for intrigue cards
 
 REASSIGNED = '__reassigned__' # 'occupier' of a waterdeep harbor slot
     # once the agent there has been reassigned 

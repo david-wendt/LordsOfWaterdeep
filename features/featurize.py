@@ -307,6 +307,10 @@ def getActionMask(actions):
             + len(actions)
         ] = torch.ones(len(actions))
 
+    elif isinstance(actions[0], str):
+        assert set(actions).issubset(INTRIGUES)
+        raise NotImplementedError("Choose an intrigue card")
+
     return actionMask
 
 def featurize(gameState, currentPlayer, actions) -> tuple[torch.Tensor, torch.Tensor]:
