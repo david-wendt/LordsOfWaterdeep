@@ -30,8 +30,9 @@ N_ACTIONS = (len(DEFAULT_BUILDINGS)
 
 def featurizeResources(
         resources: Resources | FixedResources,
-        includeVP: bool,
-        includeQI: bool = False
+        includeVP: bool = False,
+        includeQ: bool = False,
+        includeI: bool = False
         ):
     
     '''Featurize a resource object.'''
@@ -46,11 +47,11 @@ def featurizeResources(
     if includeVP:
         data.append(resources.VPs)
 
-    if isinstance(resources, FixedResources) and includeQI:
-        data += [
-            resources.quests,
+    if isinstance(resources, FixedResources) and includeQ:
+        data += [resources.quests]
+
+    if isinstance(resources, FixedResources) and includeI:
             resources.intrigues
-        ]
 
     return torch.tensor(data)
 
@@ -61,8 +62,8 @@ def featurizeQuest(quest: Quest):
 
     # Appent feature vectors for requirements and rewards
     return torch.cat([typeVector, 
-                      featurizeResources(quest.requirements, includeVP=False), 
-                      featurizeResources(quest.rewards, includeVP=True, includeQI=True)])
+                      featurizeResources(quest.requirements), 
+                      featurizeResources(quest.rewards, includeVP=True, includeQ=True, includeI=True)])
 
 # The length of a quest feature vector (for use in zero-blocks)
 QUEST_FEATURE_LEN = featurizeQuest(QUESTS[0]).size(0)
@@ -163,21 +164,58 @@ def featurizePrivatePlayerInfo(player: Player):
 #     # put unbuilt rewards as one rounds worth? or 1.5 or 1.25 or something?
 #     raise Exception("Not yet implemented.")
 
+def featurizeCustomBuilding(building: CustomBuilding):
+    return torch.cat([
+        featurizeResources(building.rewards, False, True, True),
+        featurizeResources(building.ownerRewards, True, False, True)
+    ]) # Length 14
+
+CUSTOM_BUILDING_DIM = 14 # As above, for rewards + owner rewards
+
+def featurizeUnownedBuilding(building: CustomBuilding, VPs: int):
+    # Rewards: Q,I but no VP
+    # Owner rewards: I,VP but no Q
+    assert building.owner == None,"Building must be unowned!"
+    return torch.cat([torch.tensor([VPs, building.cost]), 
+                      featurizeCustomBuilding(building)]) # Length 16
+
+def featurizeOwnedBuilding(building: CustomBuilding, playerNames: np.ndarray):
+    ownership = playerNames == building.owner
+    return torch.cat([
+        torch.tensor(ownership),
+        featurizeCustomBuilding(building)
+    ]) # Length nplayers + 14
+
 def featurizeBoardState(boardState: BoardState, playerNames: list[str]):
     '''Featurize the state of the game board (but not the players).'''
+    playerNames = np.array(playerNames)
+
     # Concatendated one-hot vectors for building occupations by player
     buildingStateList = []
     for building in DEFAULT_BUILDINGS:
-        buildingState = np.array(playerNames) == boardState.buildings[building]
+        buildingState = playerNames == boardState.buildings[building]
         buildingStateList.append(torch.tensor(buildingState))
 
-    # TODO (later): do the same but for all possible building spots
+    for i in range(NUM_ADDITIONAL_BUILDINGS):
+        if i < len(boardState.customBuildings):
+            building = boardState.customBuildings[i]
+            # Occupation state
+            buildingStateList.append(torch.tensor(playerNames == boardState.buildings[building]))
+            # Custom building description
+            buildingFeat = featurizeOwnedBuilding(building, playerNames)
+            assert buildingFeat.shape == (CUSTOM_BUILDING_DIM + len(playerNames))
+            buildingStateList.append(buildingFeat)
+        else:
+            buildingStateList.append(torch.zeros(2 * len(playerNames) + CUSTOM_BUILDING_DIM))
 
     availableQuestFeatures = [featurizeQuest(quest) for quest in boardState.availableQuests]
 
-    # TODO (later): put featurized available buildings (i.e. to build) here
+    availableBuildingFeatures = [
+        featurizeUnownedBuilding(boardState.availableBuildings[i], boardState.buildersHallVPs[i])
+        for i in range(NUM_BUILDERS_HALL)
+    ]
 
-    return torch.cat(buildingStateList + availableQuestFeatures)
+    return torch.cat(buildingStateList + availableQuestFeatures + availableBuildingFeatures)
 
 def featurizeGameState(gameState: GameState, currentPlayer: Player):
     '''Featurize the game state.'''
@@ -200,46 +238,6 @@ def featurizeGameState(gameState: GameState, currentPlayer: Player):
     return torch.cat([numRoundsLeft, boardStateFeatures, 
                       currentPlayerPrivateInfo]
                       + playerFeatures)
-
-# Deprecated (from last spring)
-# def featurizeAction(gameState: GameState, action: str):
-#     # The first four elements of the action feature vector 
-#     # will correspond to how much the agent wants each 
-#     # of the four quests available at Cliffwatch Inn. 
-#     # Then, if the agent chooses the quest spot, we
-#     # can also get the argmax of the first four q-values
-#     # to choose a quest.
-#     #      Actually, I'm not sure that this action-choosing
-#     # framework is correct. Don't we need to compute the q-value
-#     # for each action vector by feeding the vector into the q-network?
-#     # It makes more sense to feed in a list of action vectors then
-#     # instead of taking an argmax over elements. What elements will
-#     # we have in a q-value vector to argmax over other than the outputs
-#     # of the q-network on the action vectors we feed in?
-#     numActions = 4
-
-#     # One possible action per building space on the game board
-#     numActions += NUM_POSSIBLE_BUILDINGS
-
-#     # One possible action per possible active quest to complete.
-#     numActions += MAX_QUESTS
-
-#     # TODO (later): action choices for:
-#     #   - choosing a building to build
-#     #   - choosing an intrigue card from one's hand
-#     #   - giving intrigue card rewards to another player 
-#     #   - anything else?
-
-#     actionFeatures = np.zeros(numActions)
-#     if action in DEFAULT_BUILDINGS:
-#         actionFeatures[4 + DEFAULT_BUILDINGS.index(action)] = 1
-#     # elif action[:8] == "BUILDING": # One of the built buildings
-#         # actionFeatures[4 + len(DEFAULT_BUILDINGS) + (INDEX OF BUILT BUILDING)] = 1
-#     elif action[:8] == "COMPLETE": 
-#         questIndex = int(action[8:])
-#         actionFeatures[4 + NUM_POSSIBLE_BUILDINGS + questIndex] = 1
-#     else:
-#         raise ValueError("No other possible actions.")
     
 def getActionMask(actions):
     ''' Get a mask of which actions are currently availbale. 
@@ -255,15 +253,22 @@ def getActionMask(actions):
     so that first len(DEFAULT_BUILDINGS) entries 
         correspond to choosing a building to place an action,
     the next NUM_CLIFFWATCH_QUESTS entries 
-        correspond to choosing a quest from cliffwatch
+        correspond to choosing a quest from Cliffwatch Inn
+    the next NUM_BUILDERS_HALL entries correspond 
+        to choosing a custom building from Builder's Hall
     the next N_RESOURCE_TYPES entries correspond to
-        choosing a resource from an intrigue card
+        choosing a resource from an intrigue card or building (the resource you want)
+    the next N_PLAYERS entries correspond to choosing an opponent
+        to GIVE some resource to (i.e. higher Q-value means worse opponent)
+    the next N_PLAYERS entries correspond to choosing an opponent
+        to TAKE some resource from (i.e. higher Q-value means better opponent)
     and the final 1 + N_MAX_ACTIVE_QUESTS correspond 
         to choosing to not complete a quest or 
         to choosing an active quest to complete 
         (respectively)
     '''
-
+    # TODO: Update this once the above is finalized
+    
     actionMask = torch.zeros(N_ACTIONS)
     if isinstance(actions[0], Building):
         # Move type: Choose a building in which to place an agent

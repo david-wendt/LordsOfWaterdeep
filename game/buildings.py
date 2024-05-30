@@ -52,7 +52,7 @@ DEFAULT_BUILDINGS = [
     Building("Waterdeep Harbor 1", FixedResources(), playIntrigue=True, reassign=True), # Waterdeep Harbor, first slot (for playing Intrigue)
     Building("Waterdeep Harbor 2", FixedResources(), playIntrigue=True, reassign=True), # Waterdeep Harbor, second slot (for playing Intrigue)
     Building("Waterdeep Harbor 3", FixedResources(), playIntrigue=True, reassign=True), # Waterdeep Harbor, third slot (for playing Intrigue)
-    Building("Builder's Hall", buyBuilding=True), # Builder's Hall (for buying Buildings)
+    Building("Builder's Hall", FixedResources(), buyBuilding=True), # Builder's Hall (for buying Buildings)
 ]
 
 @dataclass(frozen=True)
@@ -61,6 +61,16 @@ class CustomBuilding:
     rewards: FixedResources
     ownerRewards: FixedResources
     cost: int
+    owner: str = None
+
+    def purchase(self, owner: str):
+        return CustomBuilding(
+            self.name, 
+            self.rewards,
+            self.ownerRewards,
+            self.cost,
+            owner
+        )
 
 CUSTOM_BUILDINGS = [ # Only simple ones, without any updating/spending/choosing
     # NOTE: Multiple owner resources means OR, not AND!

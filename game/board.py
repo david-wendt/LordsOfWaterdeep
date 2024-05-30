@@ -114,6 +114,8 @@ class BoardState():
         purchasedBuilding = building.purchase(owner)
         self.buildings[purchasedBuilding] = None
         self.customBuildings.append(purchasedBuilding)
+        # TODO: If we implement building lord card, keep track 
+        # of # buildings owned in player state
         return VPs
 
     def resetQuests(self):

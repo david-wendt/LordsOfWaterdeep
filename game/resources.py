@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Self
 
 @dataclass 
 class Resources: 
@@ -99,6 +100,28 @@ class FixedResources:
             gold=self.gold,
             VPs=self.VPs
         )
+    
+    def split(self) -> list[Self]:
+        singleResourceBundles = []
+
+        if self.VPs > 0:
+            singleResourceBundles.append(FixedResources(VPs=self.VPs))
+        if self.wizards > 0:
+            singleResourceBundles.append(FixedResources(wizards=self.wizards))
+        if self.clerics > 0:
+            singleResourceBundles.append(FixedResources(clerics=self.clerics))
+        if self.fighters > 0:
+            singleResourceBundles.append(FixedResources(fighters=self.fighters))
+        if self.rogues > 0:
+            singleResourceBundles.append(FixedResources(rogues=self.rogues))
+        if self.gold > 0:
+            singleResourceBundles.append(FixedResources(gold=self.gold))
+        if self.quests > 0:
+            raise ValueError('Custom buildings should not give quests to owners!')
+        if self.intrigues > 0:
+            singleResourceBundles.append(FixedResources(intrigues=self.intrigues))
+        
+        return singleResourceBundles
 
 
 STANDARD_RESOURCE_BUNDLES = [

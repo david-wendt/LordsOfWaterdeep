@@ -161,15 +161,24 @@ class GameState():
 
         currentPlayer.getResources(building.rewards.toResources())
         
-        if building.getCastle:
+        if isinstance(building, Building) and building.getCastle:
             currentPlayer.hasCastle = True 
 
-        if building.resetQuests:
+        if isinstance(building, Building) and building.resetQuests:
             self.boardState.resetQuests()
 
         if building.rewards.intrigues > 0:
             for _ in range(building.rewards.intrigues):
                 currentPlayer.getIntrigue(self.boardState.drawIntrigue())
+
+        if isinstance(building, CustomBuilding) and building.owner != currentPlayer.name:
+            owner = self.namesToPlayers[building.owner]
+            ownerRewards = building.ownerRewards.split()
+            if len(ownerRewards) > 1:
+                reward_idx = owner.selectMove(self, ownerRewards)
+            else:
+                reward_idx = 0
+            owner.getResources(ownerRewards[reward_idx])
 
         # Secondary choices (quest, intrigue card)
         if building.rewards.quests > 0:
