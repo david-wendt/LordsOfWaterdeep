@@ -13,7 +13,7 @@ class BoardState():
         self.questStack = list(QUESTS).copy()
         shuffle(self.questStack)
 
-        self.intrigueStack = INTRIGUES * 6
+        self.intrigueStack = INTRIGUES * 5
         shuffle(self.intrigueStack)
 
         # Initialize building occupation states.

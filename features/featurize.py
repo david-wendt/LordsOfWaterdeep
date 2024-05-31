@@ -260,21 +260,12 @@ def getActionMask(actions):
         choosing a resource from an intrigue card or building (the resource you want)
     the next N_PLAYERS entries correspond to choosing an opponent
         to GIVE some resource to (i.e. higher Q-value means worse opponent)
-    the next N_PLAYERS entries correspond to choosing an opponent
-        to TAKE some resource from (i.e. higher Q-value means better opponent)
     and the final 1 + N_MAX_ACTIVE_QUESTS correspond 
         to choosing to not complete a quest or 
         to choosing an active quest to complete 
         (respectively)
     '''
     # TODO: Update this once the above is finalized
-    # TODO: make sure that for choosing an intrigue, "free drinks" 
-    # can only be chosen if at least one opponent has at least one resource.
-    # TODO: Since opponents can either be for a good thing or a bad thing,
-    # this function (and select_action generally) will need to pass a descriptor
-    # of what type of action is being taken. That string can be used for switching
-    # cases instead of this type stuff I do below. Also makes it easier for our baseline agents
-    # this way.
     
     actionMask = torch.zeros(N_ACTIONS)
     if isinstance(actions[0], Building):

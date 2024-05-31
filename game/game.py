@@ -146,31 +146,62 @@ class GameState():
             resource_idx = currentPlayer.selectMove(self, resource_options)
             currentPlayer.getResources(resource_options[resource_idx])
         elif intrigue in ['Lack of Faith', 'Ambush', 'Assassination', 'Arcane Mishap']:
-            # TODO: select resources based on intrigue card name
-            lostResources = Resources(...)
-            gainedResources = Resources(...)
+            if intrigue == 'Lack of Faith':
+                lostResources = Resources(clerics=1)
+                gainedResources = Resources(VPs=2)
+            elif intrigue == 'Ambush':
+                lostResources = Resources(fighters=1)
+                gainedResources = Resources(fighters=1)
+            elif intrigue == 'Assassination':
+                lostResources = Resources(rogues=1)
+                gainedResources = Resources(gold=2)
+            elif intrigue == 'Arcane Mishap':
+                lostResources = Resources(wizards=1)
+                gainedResources = 'Intrigue'
+            else:
+                raise ValueError(f"Unknown `remove + get` intrigue card: {intrigue}")
+            
             n_rewards = self.removeFromOpponents(currentPlayer, lostResources)
-            currentPlayer.getResources(n_rewards * gainedResources)
+            if gainedResources == 'Intrigue':
+                for _ in range(n_rewards):
+                    currentPlayer.getIntrigue(self.boardState.drawIntrigue())
+            else:
+                currentPlayer.getResources(n_rewards * gainedResources)
 
-            raise NotImplementedError('Every opponent removes x, you gain y for each that could not')
-        elif intrigue == 'Free Drinks':
-            # Idea: first look at set of adventurers that at least 1 opponent has,
-            # then choose resource from this list,
-            # then choose opponent to steal it from
-            valid_opponents = ...
-            opponent_idx = currentPlayer.selectMove(self, valid_opponents, "Take from opponent")
-            raise NotImplementedError("choose 1 opp, steal 1 adventurer")
+        # elif intrigue == 'Free Drinks':
+        #     # Chose not to implement this one
+        #     # Idea: first look at set of adventurers that at least 1 opponent has,
+        #     # then choose resource from this list,
+        #     # then choose opponent to steal it from
+        #     valid_opponents = ...
+        #     opponent_idx = currentPlayer.selectMove(self, valid_opponents, "Take from opponent")
+        #     raise NotImplementedError("choose 1 opp, steal 1 adventurer")
         elif intrigue in ['Spread the Wealth', 'Graduation Day', 'Conscription', 'Good Faith', 'Crime Wave']:
-            # TODO: Switch case based on intrigue card
-                # Give resource to player within switching
-                # Define resource to be given to opponent
-            opponent_idx = currentPlayer.selectMove(self, opponents, "Give to opponent")
-            raise NotImplementedError("Get a resource, choose 1 opp to get a resource")
-        elif intrigue == 'Call for Adventurers':
-            # TODO: Choose which adventurer you want, and get two
-            for opponent in opponents:
-                raise NotImplementedError # Let each opp select a adventurer, and then give them 1
-            raise NotImplementedError
+            if intrigue == 'Spread the Wealth':
+                currentPlayer.getResources(Resources(gold=4))
+                oppResources = Resources(gold=2)
+            elif intrigue == 'Graduation Day':
+                currentPlayer.getResources(Resources(wizards=2))
+                oppResources = Resources(wizards=1)
+            elif intrigue == 'Conscription':
+                currentPlayer.getResources(Resources(fighters=2))
+                oppResources = Resources(fighters=1)
+            elif intrigue == 'Good Faith':
+                currentPlayer.getResources(Resources(clerics=2))
+                oppResources = Resources(clerics=1)
+            elif intrigue == 'Crime Wave':
+                currentPlayer.getResources(Resources(rogues=2))
+                oppResources = Resources(rogues=1)
+            else:
+                raise ValueError(f"Unknown `get + give` intrigue card: {intrigue}")
+            opponent_idx = currentPlayer.selectMove(self, opponents)
+            opponents[opponent_idx].getResources(oppResources)
+        # elif intrigue == 'Call for Adventurers':
+        #     # Choosing not to implement this
+        #     # TODO: Choose which adventurer you want, and get two
+        #     for opponent in opponents:
+        #         opponent.selectMove(self, )
+        #     raise NotImplementedError
         else:
             raise ValueError(f"Unknown intrigue card: {intrigue}")
 
