@@ -268,6 +268,13 @@ def getActionMask(actions):
         (respectively)
     '''
     # TODO: Update this once the above is finalized
+    # TODO: make sure that for choosing an intrigue, "free drinks" 
+    # can only be chosen if at least one opponent has at least one resource.
+    # TODO: Since opponents can either be for a good thing or a bad thing,
+    # this function (and select_action generally) will need to pass a descriptor
+    # of what type of action is being taken. That string can be used for switching
+    # cases instead of this type stuff I do below. Also makes it easier for our baseline agents
+    # this way.
     
     actionMask = torch.zeros(N_ACTIONS)
     if isinstance(actions[0], Building):

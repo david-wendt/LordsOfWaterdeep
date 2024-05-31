@@ -43,6 +43,17 @@ class Resources:
             or self.VPs
         )
     
+    def __mul__(self, other: int):
+        assert isinstance(other, int)
+        return Resources(
+            wizards=self.wizards * other,
+            clerics=self.clerics * other,
+            fighters=self.fighters * other,
+            rogues=self.rogues * other,
+            gold=self.gold * other,
+            VPs=self.VPs * other,
+        )
+    
 @dataclass(frozen=True) 
 class FixedResources: 
     ''' Class representing an immutable resource bundle (with quests + intrigues) '''

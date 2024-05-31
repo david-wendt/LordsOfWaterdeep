@@ -128,6 +128,52 @@ class GameState():
         for player in self.players:
             assert player.hasCastle == False 
 
+    def removeFromOpponents(self, player: Player, resources: Resources):
+        n_could_not_remove = 0
+        for other in self.players:
+            if other == player: continue # Do not remove from self
+            if other.canRemoveResources(resources):
+                other.removeResources(resources)
+            else:
+                n_could_not_remove += 1
+        return n_could_not_remove
+
+    def playIntrigue(self, currentPlayer: Player, intrigue: str):
+        assert intrigue in INTRIGUES
+        opponents = [player for player in self.players if player != currentPlayer]
+        if intrigue == 'Call in a Favor':
+            resource_options = STANDARD_RESOURCE_BUNDLES
+            resource_idx = currentPlayer.selectMove(self, resource_options)
+            currentPlayer.getResources(resource_options[resource_idx])
+        elif intrigue in ['Lack of Faith', 'Ambush', 'Assassination', 'Arcane Mishap']:
+            # TODO: select resources based on intrigue card name
+            lostResources = Resources(...)
+            gainedResources = Resources(...)
+            n_rewards = self.removeFromOpponents(currentPlayer, lostResources)
+            currentPlayer.getResources(n_rewards * gainedResources)
+
+            raise NotImplementedError('Every opponent removes x, you gain y for each that could not')
+        elif intrigue == 'Free Drinks':
+            # Idea: first look at set of adventurers that at least 1 opponent has,
+            # then choose resource from this list,
+            # then choose opponent to steal it from
+            valid_opponents = ...
+            opponent_idx = currentPlayer.selectMove(self, valid_opponents, "Take from opponent")
+            raise NotImplementedError("choose 1 opp, steal 1 adventurer")
+        elif intrigue in ['Spread the Wealth', 'Graduation Day', 'Conscription', 'Good Faith', 'Crime Wave']:
+            # TODO: Switch case based on intrigue card
+                # Give resource to player within switching
+                # Define resource to be given to opponent
+            opponent_idx = currentPlayer.selectMove(self, opponents, "Give to opponent")
+            raise NotImplementedError("Get a resource, choose 1 opp to get a resource")
+        elif intrigue == 'Call for Adventurers':
+            # TODO: Choose which adventurer you want, and get two
+            for opponent in opponents:
+                raise NotImplementedError # Let each opp select a adventurer, and then give them 1
+            raise NotImplementedError
+        else:
+            raise ValueError(f"Unknown intrigue card: {intrigue}")
+
     def takeTurn(self, currentPlayer: Player):
         '''Take a single turn in the turn order.'''
 
@@ -193,19 +239,7 @@ class GameState():
             
             intrigue_idx = currentPlayer.selectMove(self, currentPlayer.intrigues)
             intrigue = currentPlayer.intrigues.pop(intrigue_idx)
-            if intrigue == 'Call in a Favor':
-                resource_options = STANDARD_RESOURCE_BUNDLES
-                resource_idx = currentPlayer.selectMove(self, resource_options)
-                currentPlayer.getResources(resource_options[resource_idx])
-            elif intrigue in ['Lack of Faith', 'Ambush', 'Assassination', 'Arcane Mishap']:
-                raise NotImplementedError('Every opponent removes x, you gain y for each that could not')
-            elif intrigue == 'Free Drinks':
-                raise NotImplementedError("choose 1 opp, steal 1 adventurer")
-            elif intrigue in ['Spread the Wealth', 'Graduation Day', 'Conscription', 'Good Faith', 'Crime Wave', 'Call for Adventurers']:
-                raise NotImplementedError("Get a resource, choose 1 opp to get a resource")
-            else:
-                assert intrigue not in INTRIGUES
-                raise ValueError(f"Unknown intrigue card: {intrigue}")
+            self.playIntrigue(currentPlayer, intrigue)
 
         if isinstance(building, Building) and building.buyBuilding:
             building_idx = currentPlayer.selectMove(self, self.boardState.availableBuildings)

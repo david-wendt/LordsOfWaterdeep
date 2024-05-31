@@ -106,6 +106,9 @@ class Player():
 
         self.getResources(negResources)
 
+        # Check that all resource counts are still nonnegative
+        self.validateResources()
+
     def removeAllResources(self):
         ''' Remove all resources except for VPs '''
         self.resources.clerics  = 0
@@ -123,27 +126,30 @@ class Player():
         '''Return all of this player's agents.'''
         self.agents = self.maxAgents
         
-    def isValidQuestCompletion(self, quest: Quest):
+    def canRemoveResources(self, resources: Resources):
         return (
-            quest.requirements.wizards <= self.resources.wizards and
-            quest.requirements.clerics <= self.resources.clerics and
-            quest.requirements.fighters <= self.resources.fighters and
-            quest.requirements.rogues <= self.resources.rogues and
-            quest.requirements.gold <= self.resources.gold 
+            resources.wizards <= self.resources.wizards and
+            resources.clerics <= self.resources.clerics and
+            resources.fighters <= self.resources.fighters and
+            resources.rogues <= self.resources.rogues and
+            resources.gold <= self.resources.gold 
         )
+
+    def isValidQuestCompletion(self, quest: Quest):
+        return self.canRemoveResources(quest.requirements)
     
     def completableQuests(self):
         return [quest for quest in self.activeQuests if self.isValidQuestCompletion(quest)]
     
     def validateResources(self):
-        return (
+        assert (
             0 <= self.resources.wizards and
             0 <= self.resources.clerics and
             0 <= self.resources.fighters and
             0 <= self.resources.rogues and
             0 <= self.resources.gold and 
             0 <= self.resources.VPs
-        )
+        ),"Some resources are negative! " + str(self.resources)
 
     def completeQuest(self, quest: Quest):
         # Make sure the agent has this quest
@@ -160,9 +166,6 @@ class Player():
         # TODO (future): If plot quest, append to completed plot quests
         self.completedQuests.append(quest)
         self.activeQuests.remove(quest)
-
-        # Check that all resource counts are still nonnegative
-        self.validateResources()
     
     def score(self):
         '''Compute an RL agent's score.
