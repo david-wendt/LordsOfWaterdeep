@@ -1,67 +1,83 @@
-# see info at bottom of page,,Cost,,,,,,Benefit,,,,,,,,,,,
-Name,Type,C,F,R,W,G,Net,C,F,R,W,G,I,Special benefits,Quest,VP,Net,Profit,Notes
-Lure Artisans of Mirabar,C,1,1,1,,2,10,,,,,,,choose free building,,4,10,0,a good deal esp. if you wait until an 8-cost building is up
-Train Bladesingers,W,,3,,1,,10,,1,,1,,,,,4,10,0,
-Spy on the House of Light,C,,3,2,,,10,,,,,6,,,,6,12,2,both quests that give 6 gold are slightly over-valued
-Convert a Noble to Lathander,P,2,,,1,,12,,,,,,,,1,8,10,-2,one of only 2 quests that shortchange you.
-Discover Hidden Temple of Lolth,P,2,1,1,,,12,,,,,,,,1,10,12,0,
-Form an Alliance with the Rashemi,P,2,,,1,,12,,,,,,,,1,10,12,0,
-Research Chronomancy,A,,,,2,4,12,,,,1,,,free agent placement,,4,12,0,
-Safeguard Eltorchul Mage,C,,1,1,1,4,12,,,,2,,,,,4,12,0,
-Expose Cult Corruption,S,1,,4,,,12,2,,,,,,,,4,12,0,
-Produce a Miracle for the Masses,P,2,,,,4,12,,,,,,,"when you get C, trade adv.->C",,5,12,0,breakeven: ?
-Explore Ahghairon's Tower,A,,1,,2,2,12,,,,,,,"when you get W, +1 I",,6,12,0,breakeven: get W 3x
-Fence Goods for Duke of Darkness,S,,1,3,,4,12,,,,,,,"when you get R, +2 G",,6,12,0,breakeven: get R 3x
-Bolster Griffon Cavalry,W,,4,,,4,12,,,,,,,"when you get F, +1 F",,6,12,0,breakeven: get F 3x
-Loot the Crypt of Chauntea,C,1,,3,,2,12,,,,,,1,random quest,,7,10,-2,one of only 2 quests that shortchange you.
-Domesticate Owlbears,A,1,,,2,,12,,1,,,2,,,,8,12,0,
-Study the Illusk Arch,A,1,,,2,,12,,,,,,,+2 per future AQ,,8,12,0,breakeven: complete 2 future AQ
-Establish New Merchant Guild,C,1,2,,,4,12,,,,,,,+2 per future CQ,,8,12,0,breakeven: complete 2 future CQ
-Protect the House of Wonder,P,2,1,,,2,12,,,,,,,+2 per future PQ,,8,12,0,breakeven: complete 2 future PQ
-Install a Spy in Castle Waterdeep,S,,,4,,4,12,,,,,,,+2 per future SQ,,8,12,0,breakeven: complete 2 future SQ
-Quell Mercenary Uprising,W,1,4,,,,12,,,,,,,+2 per future WQ,,8,12,0,breakeven: complete 2 future WQ
-Infiltrate Builder's Hall,C,,2,2,,4,12,,,,,,,+4 per future building,,6,12,0,breakeven: build 1.5 future buildings
-Establish Harpers Safe House,S,,2,3,,2,12,,,,,,,+2 per existing building,,8,12,0,breakeven: have 2 buildings when you complete it
-Procure Stolen Goods,S,,,3,,6,12,,,,,,2,,,8,12,0,
-Ambush Artor Morlin,W,1,3,1,,,12,,,,,4,,,,8,12,0,
-Raid Orc Stronghold,W,,4,2,,,12,,,,,4,,,,8,12,0,
-Thin the City Watch,C,1,1,1,,4,12,,,4,,,,,,9,17,5,Misprint? 5 vp bonus is even more than the Lord bonus
-Build a Reputation in Skullport,S,,1,3,,4,12,,,,,,1,,,10,12,0,
-Send Aid to the Harpers,C,1,1,1,,4,12,,,,,,,one opponent gains 4g,,15,15,3,... IF you're confident the beneficiary isn't a rival. In a very close-fought game or in 2p this is more like -1 not 3.
-Place a Sleeper Agent in Skullport,S,,1,4,1,,14,,,,,,,+2 per future played Intrigue,,0,15,1,breakeven: play 7.5 future Intrigue (tough)
-Recover the Magister's Orb,A,,,3,2,,14,,,,,,,use 1 occupied bldg per round,,6,15,1,
-Steal Spellbook from Silverhand,A,,1,2,2,,14,,,,,4,2,,,7,15,1,
-Steal from House Adarbrent,S,,1,4,1,,14,,,,,6,,,,10,16,2,both quests that give 6 gold are slightly over-valued
-Retrieve Ancient Artifacts,A,,2,1,2,,14,,,,,4,,,,11,15,1,
-Eliminate Vampire Coven,P,2,2,1,,,14,,,,,4,,,,11,15,1,
-Defeat Uprising from Undermountain,W,1,3,1,,2,14,,2,,,,,,,11,15,1,
-Deliver an Ultimatum,W,,4,1,1,,14,,,,,4,,,,11,15,1,
-Investigate Aberrant Infestation,A,1,1,,2,,14,,,,,,1,,,13,15,1,
-Defend the Tower of Luck,P,2,1,1,1,,16,,,,,,,1 adventurer per round,,0,18,2,"breakeven: 4.5x at best, so you'd have to finish this by round 4"
-Recruit for Blackstaff Academy,A,,1,1,2,4,16,,,,3,,,,,6,18,2,
-Heal Fallen Gray Hand Soldiers,P,2,,,1,4,16,,6,,,,,,,6,18,2,
-Host Festival for Sune,A,,2,,2,4,16,2,,,,,,,,9,17,1,
-Deliver Weapons to Selune's Temple,W,,4,1,1,2,16,2,,,,,,,,9,17,1,
-Placate the Walking Statue,C,2,,2,,4,16,,,,,,,random free building,,10,18,2,strangely valued higher than getting to *choose* the building
-Bribe the Shipwrights,C,,,4,1,4,16,,,,,,,"when you get G, +1 R",,10,18,2,breakeven: get G 4x
-Take Over Rival Organization,S,,1,2,1,6,16,,,4,,,,,,10,18,2,
-Perform the Penance of Duty,P,2,2,,,4,16,1,1,,,,,,,12,18,2,
-Repel Seawraiths,W,1,4,,1,,16,,,,,2,,,,15,17,1,
-Prison Break,S,,,4,2,2,18,,2,,,,,play Intrigue,,14,20,2,
-Seal Gate to Cyric's Realm,P,2,,3,,4,18,,,,,,,,,20,20,2,
-Recruit Lieutenant,W,1,5,1,1,,20,,,,,,,lieutenant,,0,22,2,could the Lt. possibly be worth 22 VP??
-Recruit Paladins for Tyr,P,2,4,,,4,20,3,,,,,,,,10,22,2,
-Impersonate Adarbrent Noble,C,1,2,2,1,4,20,,,,,,2,,,18,22,2,
-Expose Red Wizards' Spies,A,1,1,2,2,2,20,,,,,,1,,,20,22,2,
-Raid on Undermountain,S,1,2,4,1,,20,,,,,2,,,,20,22,2,
-Confront the Xanathar,W,1,4,2,1,,20,,,,,2,,,,20,22,2,
-Infiltrate Halaster's Circle,A,,,,5,2,22,,,,,,,,,25,25,3,
-Ally with House Thann,C,1,,3,1,8,22,,,,,,,,,25,25,3,
-Create a Shrine to Oghma,P,5,,,,2,22,,,,,,,,,25,25,3,
-Establish Shadow Thieves' Guild,S,,1,8,1,,22,,,,,,,,,25,25,3,
-Bolster City Guard,W,,9,2,,,22,,,,,,,,,25,25,3,
-#,,,,,,,,,,,,,,,,,,,
-#,#Uses the equivalences: 1 placement = 1 Cleric = 1 Wizard = 2 Fighters = 2 Rogues = 2 intrigue cards = 4 Gold = 4 VP,,,,,,,,,,,,,,,,,,
-#,"#This treats all these resources as fungible, which in reality they aren't. Just because a card seems like a ""bad deal"" here doesn't mean it may not be exactly what you need.",,,,,,,,,,,,,,,,,,
-#,"#""VP valuation"" (Column P) of the ""Special benefits"" (Col. O) is simply assigned opportunistically to make the card ""work out"" right.",,,,,,,,,,,,,,,,,,
-#,"#Profits with yellow backgrounds are ""anomalous"", breaking with the usual formula",,,,,,,,,,,,,,,,,,
+# see info at bottom of page,,Cost,,,,,,Benefit,,,,,,,,,,,,
+Name,Type,C,F,R,W,G,Net,C,F,R,W,G,I,Special benefits,Plot,Quest,VP,Net,Profit,Notes
+Lure Artisans of Mirabar,C,1,1,1,,2,10,,,,,,,choose free building,,,4,10,0,a good deal esp. if you wait until an 8-cost building is up
+Train Bladesingers,W,,3,,1,,10,,1,,1,,,,,,4,10,0,
+Spy on the House of Light,C,,3,2,,,10,,,,,6,,,,,6,12,2,both quests that give 6 gold are slightly over-valued
+Convert a Noble to Lathander,P,2,,,1,,12,,,,,,,,,1,8,10,-2,one of only 2 quests that shortchange you.
+Discover Hidden Temple of Lolth,P,2,1,1,,,12,,,,,,,,,1,10,12,0,
+Form an Alliance with the Rashemi,P,2,,,1,,12,,,,,,,,,1,10,12,0,
+Research Chronomancy,A,,,,2,4,12,,,,1,,,free agent placement,,,4,12,0,
+Safeguard Eltorchul Mage,C,,1,1,1,4,12,,,,2,,,,,,4,12,0,
+Expose Cult Corruption,S,1,,4,,,12,2,,,,,,,,,4,12,0,
+Produce a Miracle for the Masses,P,2,,,,4,12,,,,,,,"when you get C, trade adv.->C",,,5,12,0,breakeven: ?
+Explore Ahghairon's Tower,A,,1,,2,2,12,,,,,,,"when you get W, +1 I",,,6,12,0,breakeven: get W 3x
+Fence Goods for Duke of Darkness,S,,1,3,,4,12,,,,,,,"when you get R, +2 G",,,6,12,0,breakeven: get R 3x
+Bolster Griffon Cavalry,W,,4,,,4,12,,,,,,,"when you get F, +1 F",,,6,12,0,breakeven: get F 3x
+Loot the Crypt of Chauntea,C,1,,3,,2,12,,,,,,1,,,1,7,10,-2,one of only 2 quests that shortchange you.
+Domesticate Owlbears,A,1,,,2,,12,,1,,,2,,,,,8,12,0,
+Study the Illusk Arch,A,1,,,2,,12,,,,,,,,1,,8,12,0,breakeven: complete 2 future AQ
+Establish New Merchant Guild,C,1,2,,,4,12,,,,,,,,1,,8,12,0,breakeven: complete 2 future CQ
+Protect the House of Wonder,P,2,1,,,2,12,,,,,,,,1,,8,12,0,breakeven: complete 2 future PQ
+Install a Spy in Castle Waterdeep,S,,,4,,4,12,,,,,,,,1,,8,12,0,breakeven: complete 2 future SQ
+Quell Mercenary Uprising,W,1,4,,,,12,,,,,,,,1,,8,12,0,breakeven: complete 2 future WQ
+Infiltrate Builder's Hall,C,,2,2,,4,12,,,,,,,+4 per future building,,,6,12,0,breakeven: build 1.5 future buildings
+Establish Harpers Safe House,S,,2,3,,2,12,,,,,,,+2 per existing building,,,8,12,0,breakeven: have 2 buildings when you complete it
+Procure Stolen Goods,S,,,3,,6,12,,,,,,2,,,,8,12,0,
+Ambush Artor Morlin,W,1,3,1,,,12,,,,,4,,,,,8,12,0,
+Raid Orc Stronghold,W,,4,2,,,12,,,,,4,,,,,8,12,0,
+Thin the City Watch,C,1,1,1,,4,12,,,2,,,,,,,9,13,1,Misprint? 5 vp bonus is even more than the Lord bonus
+Build a Reputation in Skullport,S,,1,3,,4,12,,,,,,1,,,,10,12,0,
+Send Aid to the Harpers,C,1,1,1,,4,12,,,,,,,,,,13,13,1,... IF you're confident the beneficiary isn't a rival. In a very close-fought game or in 2p this is more like -1 not 3.
+Place a Sleeper Agent in Skullport,S,,1,4,1,,14,,,,,,,+2 per future played Intrigue,,,0,15,1,breakeven: play 7.5 future Intrigue (tough)
+Recover the Magister's Orb,A,,,3,2,,14,,,,,,,use 1 occupied bldg per round,,,6,15,1,
+Steal Spellbook from Silverhand,A,,1,2,2,,14,,,,,4,2,,,,7,15,1,
+Steal from House Adarbrent,S,,1,4,1,,14,,,,,6,,,,,10,16,2,both quests that give 6 gold are slightly over-valued
+Retrieve Ancient Artifacts,A,,2,1,2,,14,,,,,4,,,,,11,15,1,
+Eliminate Vampire Coven,P,2,2,1,,,14,,,,,4,,,,,11,15,1,
+Defeat Uprising from Undermountain,W,1,3,1,,2,14,,2,,,,,,,,11,15,1,
+Deliver an Ultimatum,W,,4,1,1,,14,,,,,4,,,,,11,15,1,
+Investigate Aberrant Infestation,A,1,1,,2,,14,,,,,,1,,,,13,15,1,
+Defend the Tower of Luck,P,2,1,1,1,,16,,,,,,,1 adventurer per round,,,0,18,2,"breakeven: 4.5x at best, so you'd have to finish this by round 4"
+Recruit for Blackstaff Academy,A,,1,1,2,4,16,,,,3,,,,,,6,18,2,
+Heal Fallen Gray Hand Soldiers,P,2,,,1,4,16,,6,,,,,,,,6,18,2,
+Host Festival for Sune,A,,2,,2,4,16,2,,,,,,,,,9,17,1,
+Deliver Weapons to Selune's Temple,W,,4,1,1,2,16,2,,,,,,,,,9,17,1,
+Placate the Walking Statue,C,2,,2,,4,16,,,,,,,random free building,,,10,18,2,strangely valued higher than getting to *choose* the building
+Bribe the Shipwrights,C,,,4,1,4,16,,,,,,,"when you get G, +1 R",,,10,18,2,breakeven: get G 4x
+Take Over Rival Organization,S,,1,2,1,6,16,,,4,,,,,,,10,18,2,
+Perform the Penance of Duty,P,2,2,,,4,16,1,1,,,,,,,,12,18,2,
+Repel Seawraiths,W,1,4,,1,,16,,,,,2,,,,,15,17,1,
+Prison Break,S,,,4,2,2,18,,2,,,,,play Intrigue,,,14,20,2,
+Seal Gate to Cyric's Realm,P,2,,3,,4,18,,,,,,,,,,20,20,2,
+Recruit Lieutenant,W,1,5,1,1,,20,,,,,,,lieutenant,,,0,22,2,could the Lt. possibly be worth 22 VP??
+Recruit Paladins for Tyr,P,2,4,,,4,20,3,,,,,,,,,10,22,2,
+Impersonate Adarbrent Noble,C,1,2,2,1,4,20,,,,,,2,,,,18,22,2,
+Expose Red Wizards' Spies,A,1,1,2,2,2,20,,,,,,1,,,,20,22,2,
+Raid on Undermountain,S,1,2,4,1,,20,,,,,2,,,,,20,22,2,
+Confront the Xanathar,W,1,4,2,1,,20,,,,,2,,,,,20,22,2,
+Infiltrate Halaster's Circle,A,,,,5,2,22,,,,,,,,,,25,25,3,
+Ally with House Thann,C,1,,3,1,8,22,,,,,,,,,,25,25,3,
+Create a Shrine to Oghma,P,5,,,,2,22,,,,,,,,,,25,25,3,
+Establish Shadow Thieves' Guild,S,,1,8,1,,22,,,,,,,,,,25,25,3,
+Bolster City Guard,W,,9,2,,,22,,,,,,,,,,25,25,3,
+Study the Illusk Arch 2,A,,,2,2,,12,,,,,,,,1,,8,12,0,breakeven: complete 2 future AQ
+Establish New Merchant Guild 2,C,1,,2,,4,12,,,,,,,,1,,8,12,0,breakeven: complete 2 future CQ
+Protect the House of Wonder 2,P,2,,1,,2,12,,,,,,,,1,,8,12,0,breakeven: complete 2 future PQ
+Install a Spy in Castle Waterdeep 2,S,,,4,1,,12,,,,,,,,1,,8,12,0,breakeven: complete 2 future SQ
+Quell Mercenary Uprising 2,W,,4,,1,,12,,,,,,,,1,,8,12,0,breakeven: complete 2 future WQ
+Study the Illusk Arch 3,A,,,,2,4,12,,,,,,,,1,,8,12,0,breakeven: complete 2 future AQ
+Establish New Merchant Guild 3,C,,2,,1,4,12,,,,,,,,1,,8,12,0,breakeven: complete 2 future CQ
+Protect the House of Wonder 3,P,2,1,1,,,12,,,,,,,,1,,8,12,0,breakeven: complete 2 future PQ
+Install a Spy in Castle Waterdeep 3,S,,2,4,,,12,,,,,,,,1,,8,12,0,breakeven: complete 2 future SQ
+Quell Mercenary Uprising 3,W,,4,,,4,12,,,,,,,,1,,8,12,0,breakeven: complete 2 future WQ
+#,,,,,,,,,,,,,,,,,,,,
+#,#Uses the equivalences: 1 placement = 1 Cleric = 1 Wizard = 2 Fighters = 2 Rogues = 2 intrigue cards = 4 Gold = 4 VP,,,,,,,,,,,,,,,,,,,
+#,"#This treats all these resources as fungible, which in reality they aren't. Just because a card seems like a ""bad deal"" here doesn't mean it may not be exactly what you need.",,,,,,,,,,,,,,,,,,,
+#,"#""VP valuation"" (Column P) of the ""Special benefits"" (Col. O) is simply assigned opportunistically to make the card ""work out"" right.",,,,,,,,,,,,,,,,,,,
+#,"#Profits with yellow backgrounds are ""anomalous"", breaking with the usual formula",,,,,,,,,,,,,,,,,,,
+#,EDIT: Loot the crypt of Chantea changed from random quest to chosen quest,,,,,,,,,,,,,,,,,,,
+#,"EDIT:+2 per future ?Q replaced by a 1 in the ""Plot"" column",,,,,,,,,,,,,,,,,,,
+#,"EDIT: Tripled all plot quests (last 10 quests are fake, but modified versions of the + points for future quests of the same type)",,,,,,,,,,,,,,,,,,,
+#,"EDIT: Send aid to the harpers, removed the +4gp to opponent and reduced VP by 2",,,,,,,,,,,,,,,,,,,
+#,EDIT: Thin the city watch rewards reduced by 2 rogues (since otherwise it is a very OP quest),,,,,,,,,,,,,,,,,,,
+#,,,,,,,,,,,,,,,,,,,,

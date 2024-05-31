@@ -39,7 +39,7 @@ class Quest:
 
 # TODO (later): add plot quests 
 
-def parseQuests():
+def parseQuests() -> list[Quest]:
     fname = 'data/quests.csv'
 
     df = pd.read_csv(
@@ -89,5 +89,22 @@ def parseQuests():
 QUESTS = parseQuests()
 
 def main():
+    data = {qtype: [] for qtype in QUEST_TYPES}
     for quest in QUESTS:
-        print(quest)
+        data[quest.type].append(quest.rewards.VPs)
+
+    for qtype,vps in data.items():
+        print(qtype, len(vps), np.mean(vps))
+    print(len(QUESTS))
+
+    # df = pd.read_csv(
+    #     'data/quests.csv', comment='#'
+    # ).drop([
+    #     'Net',
+    #     'Net.1',
+    #     'Profit',
+    #     'Notes'
+    # ], axis=1)
+
+    # print(df.groupby('Type').count())
+    # print(df[['Type', 'Name', 'Special benefits']].loc[df.Type == 'C',])

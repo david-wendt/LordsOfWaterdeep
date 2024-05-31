@@ -1,8 +1,9 @@
 from game import game
 from agents.baseline.manual_agent import ManualAgent
 from agents.baseline.random_agent import RandomAgent
+from game import quests
 
-if __name__ == "__main__":
+def main():
     agents = [RandomAgent(), RandomAgent()]
     # agents = [ManualAgent(), RandomAgent()]
     wins = []
@@ -17,3 +18,6 @@ if __name__ == "__main__":
         ties.append(vps[0] == vps[1])
     print(sum(wins) / len(wins))
     print(sum(ties) / len(ties))
+
+if __name__ == '__main__':
+    quests.main()
