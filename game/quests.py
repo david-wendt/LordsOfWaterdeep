@@ -18,6 +18,8 @@ LETTER_TO_QUEST_TYPE = {qtype[0]: qtype for qtype in QUEST_TYPES}
 
 DO_NOT_COMPLETE_QUEST = "Do not complete a quest"
 
+PLOT_BONUS_VP = 2
+
 @dataclass(frozen=True)
 class Quest:
     ''' Class representing a quest '''

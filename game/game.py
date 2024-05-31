@@ -161,10 +161,12 @@ class GameState():
 
         rewards,nQuests,nIntrigues = quest.rewards.toResources()
         player.getResources(rewards)
+        player.resources.VPs += PLOT_BONUS_VP * player.completedPlotQuests[quest.type]
         self.rewardQuests(player, nQuests)
         self.rewardIntrigues(player, nIntrigues)
 
-        # TODO (future): If plot quest, append to completed plot quests
+        if quest.plot:
+            player.completedPlotQuests[quest.type] += 1
         player.completedQuests.append(quest)
         player.activeQuests.remove(quest)
 

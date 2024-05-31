@@ -132,38 +132,6 @@ def featurizePrivatePlayerInfo(player: Player):
     # TODO (later): featurize intrigue cards properly if there are multiple types
     return lordCard
 
-# TODO (later): uncomment the below and complete
-# def featurizeBuilding(rewards: dict[str,int], ownerRewards: dict[str,int],
-#                       cost: int, state: int):
-#     '''
-#     Featurize one non-default building, either built already or not yet built.
-
-#     Args: 
-#         rewards: the reward dictionary a player gets when placing 
-#             an agent at the building
-#         ownerRewards: the reward dictionary the building owner receives
-#             when a player places an agent there
-#         cost: the cost (in gold) for buying a building if it is unbuilt.
-#             Set to 'None' when it is already built.
-#         state: the occupation state of the building. None if unoccupied,
-#             otherwise a player's name.
-#     '''
-#     # Cost should be None when the building is already built
-#     if cost == None:
-#         # Featurize a built building
-#         pass 
-#     else:
-#         # Featurize an unbuilt building
-#         pass
-#
-#     # Hint: for reward dicts, use featurizeRewards
-#     # (check all buildings to see whether intrigue/quests/VP can be both
-#     #  player and owner rewards or not.)
-#
-#     # For builidngs that gather rewards over time, maybe
-#     # put unbuilt rewards as one rounds worth? or 1.5 or 1.25 or something?
-#     raise Exception("Not yet implemented.")
-
 def featurizeCustomBuilding(building: CustomBuilding):
     return torch.cat([
         featurizeResources(building.rewards, False, True, True),

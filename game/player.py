@@ -26,7 +26,7 @@ class Player():
         self.activeQuests = []
         self.completedQuests = []
         # TODO (later): uncomment below
-        self.completedPlotQuests = [0] * len(QUEST_TYPES) # N completed plot quests per type 
+        self.completedPlotQuests = {qtype: 0 for qtype in QUEST_TYPES} # N completed plot quests per type 
         self.intrigues = []
         self.agents = numAgents
         self.maxAgents = numAgents # Done like this because player objects have no access to game state
@@ -160,18 +160,6 @@ class Player():
         than an actual VP count, as the reward for the RL agent:
         reward(action) = score(after action) - score(before action)
         '''
-        # The score used for training RL agents
-        # should NOT be VP alone, but to account for 
-        # endgame values of agents and gold, we should have
-        # score = VP + #(agents) + #(gold)//2
-        
-        # More realistically though, if we 
-        # are really trying to teach 
-        # strategy, maybe #(white,purple) 
-        # + #(black,orange)/2 + #(gold)/4 
-        # to correspond to turn-value instead 
-        # of VP-value at endgame? )
-        # This version is implemented below.
 
         # TODO: 
         # Maybe subtract sum/max/softmax of 
@@ -201,6 +189,7 @@ class Player():
         # TODO: Maybe increase slightly for lord-card-aligned quests? to 0.75 or smth?
 
         for quest in self.completedQuests:
+            # Lord card bonus
             if quest.type in self.lordCard:
                 score += 4 * SCORE_PER_VP
             # TODO (later version): add check for lordCard = "Buildings"
