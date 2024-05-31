@@ -220,14 +220,12 @@ class GameState():
         possibleMoves = utils.filterWaterdeep(possibleMoves)
 
         assert len(possibleMoves) > 0,"Issue if there are not enough buildings to play"
-        # ^^ This will happen without builder's hall in a 5-player game,
-        # or in any other game after round 4
         
         # If player has no intrigues, remove buildings 
         #   where you need to play an intrigue
         if len(currentPlayer.intrigues) == 0:
             for building in possibleMoves:
-                if building.playIntrigue:
+                if isinstance(building, Building) and building.playIntrigue:
                     possibleMoves.remove(building)
 
         # Choose a building to play an agent at
@@ -320,5 +318,5 @@ class GameState():
         return f"ROUNDS LEFT: {self.roundsLeft}\n\nBOARD STATE:\n{self.boardState}\nPLAYERS:" + "".join([f"{player}" for player in self.players])
 
 def main(agents):
-    gs = GameState(agents, numRounds=4)
-    gs.runGame(False)
+    gs = GameState(agents, numRounds=8)
+    return gs.runGame(False)

@@ -20,5 +20,5 @@ def filterWaterdeep(buildings: list[Building]):
 def getWaterdeepHarbors(buildings: dict[Building,str]):
     return sorted([
         building for building in buildings
-        if building.reassign
+        if isinstance(building, Building) and building.reassign
     ], key=lambda building: building.name)

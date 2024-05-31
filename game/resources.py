@@ -54,6 +54,8 @@ class Resources:
             VPs=self.VPs * other,
         )
     
+    __rmul__ = __mul__
+    
 @dataclass(frozen=True) 
 class FixedResources: 
     ''' Class representing an immutable resource bundle (with quests + intrigues) '''
