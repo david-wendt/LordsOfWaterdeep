@@ -26,7 +26,7 @@ class Player():
         self.activeQuests = []
         self.completedQuests = []
         # TODO (later): uncomment below
-        # self.completedPlotQuests = [] # Completed plot quests 
+        self.completedPlotQuests = [0] * len(QUEST_TYPES) # N completed plot quests per type 
         self.intrigues = []
         self.agents = numAgents
         self.maxAgents = numAgents # Done like this because player objects have no access to game state
@@ -85,6 +85,8 @@ class Player():
 
     def getResources(self, resources: Resources):
         ''' Receive a resource bundle `resources` '''
+        if isinstance(resources, FixedResources):
+            raise TypeError("Player can only get Resources, not FixedResources!")
         self.resources.clerics += resources.clerics
         self.resources.wizards += resources.wizards
         self.resources.rogues += resources.rogues
@@ -150,22 +152,6 @@ class Player():
             0 <= self.resources.gold and 
             0 <= self.resources.VPs
         ),"Some resources are negative! " + str(self.resources)
-
-    def completeQuest(self, quest: Quest):
-        # Make sure the agent has this quest
-        if quest not in self.activeQuests:
-            raise ValueError("This agent does not have this quest.")
-
-        # Check if the quest can be completed                
-        if not self.isValidQuestCompletion(quest):
-            raise ValueError("Do not have enough resources to complete this quest.")
-        
-        self.removeResources(quest.requirements)
-        self.getResources(quest.rewards)
-
-        # TODO (future): If plot quest, append to completed plot quests
-        self.completedQuests.append(quest)
-        self.activeQuests.remove(quest)
     
     def score(self):
         '''Compute an RL agent's score.

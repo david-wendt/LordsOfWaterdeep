@@ -20,4 +20,5 @@ def main():
     print(sum(ties) / len(ties))
 
 if __name__ == '__main__':
-    quests.main()
+    # quests.main()
+    main()

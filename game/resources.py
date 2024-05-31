@@ -104,7 +104,9 @@ class FixedResources:
             or self.VPs
         )
     
-    def toResources(self) -> Resources:
+    def toResources(self) -> tuple[Resources,int,int]:
+        ''' Returns tuple of (Resources, nQuests, nIntrigues)
+        from FixedResources. '''
         return Resources(
             wizards=self.wizards,
             clerics=self.clerics,
@@ -112,7 +114,7 @@ class FixedResources:
             rogues=self.rogues,
             gold=self.gold,
             VPs=self.VPs
-        )
+        ), self.quests, self.intrigues
     
     def split(self) -> list[Self]:
         singleResourceBundles = []

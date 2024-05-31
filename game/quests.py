@@ -25,9 +25,11 @@ class Quest:
     type: str 
     requirements: FixedResources 
     rewards: FixedResources 
+    plot: bool
 
     def __repr__(self) -> str:
-        return f"{self.name} ({self.type}):\n\t\tRequires {self.requirements}\n\t\tRewards {self.rewards}"
+        return f"{self.name} ({self.type}):\n\t\tRequires {self.requirements}\n\t\tRewards {self.rewards}"\
+            + f"\n\t\tPlot Quest (+2VP/future quest of type): {self.plot}"
 
 # Two quests that I originally edited:
 #     Quest('Convert a Noble to Lathander EDITED', PIETY,
@@ -81,7 +83,8 @@ def parseQuests() -> list[Quest]:
                 intrigues=row['I'],
                 quests=row['Quest'],
                 VPs=row['VP']
-            )
+            ),
+            plot=bool(row['Plot'])
         ))
 
     return quests
@@ -89,13 +92,14 @@ def parseQuests() -> list[Quest]:
 QUESTS = parseQuests()
 
 def main():
-    data = {qtype: [] for qtype in QUEST_TYPES}
+    # data = {qtype: [] for qtype in QUEST_TYPES}
     for quest in QUESTS:
-        data[quest.type].append(quest.rewards.VPs)
+        # data[quest.type].append(quest.rewards.VPs)
+        print(quest)
 
-    for qtype,vps in data.items():
-        print(qtype, len(vps), np.mean(vps))
-    print(len(QUESTS))
+    # for qtype,vps in data.items():
+    #     print(qtype, len(vps), np.mean(vps))
+    # print(len(QUESTS))
 
     # df = pd.read_csv(
     #     'data/quests.csv', comment='#'

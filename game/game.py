@@ -137,6 +137,36 @@ class GameState():
             else:
                 n_could_not_remove += 1
         return n_could_not_remove
+    
+    def rewardQuests(self, currentPlayer: Player, nQuests: int):
+        for _ in range(nQuests):
+            quest_idx = currentPlayer.selectMove(self, self.boardState.availableQuests)
+            quest = self.boardState.chooseQuest(quest_idx)
+            currentPlayer.getQuest(quest)
+
+    def rewardIntrigues(self, currentPlayer: Player, nIntrigues: int):
+        for _ in range(nIntrigues):
+            currentPlayer.getIntrigue(self.boardState.drawIntrigue())
+
+    def completeQuest(self, player: Player, quest: Quest):
+        # Make sure the agent has this quest
+        if quest not in player.activeQuests:
+            raise ValueError("This agent does not have this quest.")
+
+        # Check if the quest can be completed                
+        if not player.isValidQuestCompletion(quest):
+            raise ValueError("Do not have enough resources to complete this quest.")
+        
+        player.removeResources(quest.requirements)
+
+        rewards,nQuests,nIntrigues = quest.rewards.toResources()
+        player.getResources(rewards)
+        self.rewardQuests(player, nQuests)
+        self.rewardIntrigues(player, nIntrigues)
+
+        # TODO (future): If plot quest, append to completed plot quests
+        player.completedQuests.append(quest)
+        player.activeQuests.remove(quest)
 
     def playIntrigue(self, currentPlayer: Player, intrigue: str):
         assert intrigue in INTRIGUES
@@ -163,8 +193,7 @@ class GameState():
             
             n_rewards = self.removeFromOpponents(currentPlayer, lostResources)
             if gainedResources == 'Intrigue':
-                for _ in range(n_rewards):
-                    currentPlayer.getIntrigue(self.boardState.drawIntrigue())
+                self.rewardIntrigues(currentPlayer, n_rewards)
             else:
                 currentPlayer.getResources(n_rewards * gainedResources)
 
@@ -234,7 +263,8 @@ class GameState():
         self.boardState.buildings[building] = currentPlayer.name
         currentPlayer.agents -= 1
 
-        currentPlayer.getResources(building.rewards.toResources())
+        buildingRewards,buildingQuests,buildingIntrigues = building.rewards.toResources()
+        currentPlayer.getResources(buildingRewards)
         
         if isinstance(building, Building) and building.getCastle:
             currentPlayer.hasCastle = True 
@@ -242,25 +272,23 @@ class GameState():
         if isinstance(building, Building) and building.resetQuests:
             self.boardState.resetQuests()
 
-        if building.rewards.intrigues > 0:
-            for _ in range(building.rewards.intrigues):
-                currentPlayer.getIntrigue(self.boardState.drawIntrigue())
+        self.rewardIntrigues(currentPlayer, buildingIntrigues)
 
         if isinstance(building, CustomBuilding) and building.owner != currentPlayer.name:
             owner = self.namesToPlayers[building.owner]
-            ownerRewards = building.ownerRewards.split()
-            if len(ownerRewards) > 1:
-                reward_idx = owner.selectMove(self, ownerRewards)
+            ownerRewardBundles = building.ownerRewards.split()
+            if len(ownerRewardBundles) > 1:
+                reward_idx = owner.selectMove(self, ownerRewardBundles)
             else:
                 reward_idx = 0
-            owner.getResources(ownerRewards[reward_idx])
+            
+            ownerRewards,ownerQuests,ownerIntrigues = ownerRewardBundles[reward_idx].toResources()
+            owner.getResources(ownerRewards)
+            assert ownerQuests == 0,"Owner should not receive quests from buildings"
+            self.rewardIntrigues(owner, ownerIntrigues)
 
         # Secondary choices (quest, intrigue card)
-        if building.rewards.quests > 0:
-            for _ in range(building.rewards.quests):
-                quest_idx = currentPlayer.selectMove(self, self.boardState.availableQuests)
-                quest = self.boardState.chooseQuest(quest_idx)
-                currentPlayer.getQuest(quest)
+        self.rewardQuests(currentPlayer, buildingQuests)
         
         if isinstance(building, Building) and building.playIntrigue:
             if len(currentPlayer.intrigues) == 0:
@@ -279,7 +307,7 @@ class GameState():
         if completableQuests:
             move_idx = currentPlayer.selectMove(self, [DO_NOT_COMPLETE_QUEST] + completableQuests) 
             if move_idx > 0:
-                currentPlayer.completeQuest(completableQuests[move_idx - 1])
+                self.completeQuest(currentPlayer, completableQuests[move_idx - 1])
 
     def runGame(self, verbose=False):
         '''Umbrella function to run the game.'''
