@@ -73,11 +73,9 @@ def train(agents, n_games, verbose=False):
     
 def main(args):
     nPlayers = 2
-    # stateDim = featurize.stateDim(nPlayers)
-    stateDim = 522 # TODO: see why this was wrong!!
     deepQAgent = DQNAgent(
-        state_dim=stateDim, 
-        action_dim=featurize.N_ACTIONS
+        state_dim=featurize.STATE_DIM, 
+        action_dim=featurize.ACTION_DIM
     )
 
     randomAgent = RandomAgent()
@@ -103,7 +101,7 @@ def main(args):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ngames", type=int, default=1e3)
+    parser.add_argument("--ngames", type=int, default=int(1e3))
     args = parser.parse_args()
     
     main(args)

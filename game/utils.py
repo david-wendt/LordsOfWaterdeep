@@ -1,4 +1,5 @@
 from game.buildings import Building
+from game.player import Player
 
 def filterWaterdeep(buildings: list[Building]):
     ''' Make sure only one waterdeep harbor slot is in list of buildings. '''
@@ -20,5 +21,17 @@ def filterWaterdeep(buildings: list[Building]):
 def getWaterdeepHarbors(buildings: dict[Building,str]):
     return sorted([
         building for building in buildings
-        if building.reassign
+        if isinstance(building, Building) and building.reassign
     ], key=lambda building: building.name)
+
+def reorderPlayers(players: list[Player], currentPlayer: Player):
+     # Reorder players so currentPlayer is always first
+    players = players.copy()
+    currentPlayerIdx = players.index(currentPlayer)
+    if currentPlayerIdx != 0:
+        players = players[currentPlayerIdx:] + players[:currentPlayerIdx]
+    assert players[0] == currentPlayer # Double-check the above
+    return players
+
+def getOpponents(players: list[Player], currentPlayer: Player):
+     return reorderPlayers(players, currentPlayer)[1:]

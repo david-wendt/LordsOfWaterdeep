@@ -1,4 +1,5 @@
 from random import shuffle
+from collections import defaultdict
 
 from game.game_info import *
 from game.player import Player
@@ -10,6 +11,8 @@ from agents.agent import Agent
 # options. Broadly, this class handles anything involving the game state and
 # the players, while those other classes handle either only the game state
 # itself or only the players themselves (to the extent possible).
+
+# actionTypes = defaultdict(int)
 
 class GameState():
     '''
@@ -39,6 +42,7 @@ class GameState():
 
         # Initialize the BoardState
         self.boardState = board.BoardState()
+        self.resourcesToGive = None # Used for intrigue cards that give resources to others
 
         # Set default player names
         if playerNames is None:
@@ -83,9 +87,10 @@ class GameState():
                 player.getIntrigue(self.boardState.drawIntrigue())
             player.getResources(Resources(gold = 4 + i))
 
-        # Finally, start a new round (at this stage, just 
-        # decrements roundsLeft and places VPs on
-        # buildings at builder's hall)
+        # Finally, start a new round
+        # (decrements roundsLeft, places VPs on
+        # buildings at builder's hall, and some
+        # other logic)
         self.newRound()
 
     def printPlayers(self):
@@ -96,12 +101,11 @@ class GameState():
     def newRound(self):
         '''Reset the board at the beginning of each round.'''
         self.roundsLeft -= 1
-        # TODO (later version): put VPs on buildings at bulider's hall
+        for i in range(NUM_BUILDERS_HALL):
+            self.boardState.buildersHallVPs[i] += 1 # Place a VP on the building
 
         # Reset all buildings
         self.boardState.clearBuildings()
-
-        # TODO (later version): put new resources on buildings that need them
 
         # Get new agent at fifth round
         if self.roundsLeft == 4:
@@ -126,7 +130,117 @@ class GameState():
         for player in self.players:
             assert player.hasCastle == False 
 
-    def takeTurn(self, currentPlayer):
+    def removeFromOpponents(self, player: Player, resources: Resources):
+        n_could_not_remove = 0
+        for other in self.players:
+            if other == player: continue # Do not remove from self
+            if other.canRemoveResources(resources):
+                other.removeResources(resources)
+            else:
+                n_could_not_remove += 1
+        return n_could_not_remove
+    
+    def rewardQuests(self, currentPlayer: Player, nQuests: int):
+        for _ in range(nQuests):
+            # actionTypes["choose a quest from cliffwatch inn"] += 1
+            quest_idx = currentPlayer.selectMove(self, self.boardState.availableQuests)
+            quest = self.boardState.chooseQuest(quest_idx)
+            currentPlayer.getQuest(quest)
+
+    def rewardIntrigues(self, currentPlayer: Player, numIntrigues: int):
+        for _ in range(numIntrigues):
+            currentPlayer.getIntrigue(self.boardState.drawIntrigue())
+
+    def completeQuest(self, player: Player, quest: Quest):
+        # Make sure the agent has this quest
+        if quest not in player.activeQuests:
+            raise ValueError("This agent does not have this quest.")
+
+        # Check if the quest can be completed                
+        if not player.isValidQuestCompletion(quest):
+            raise ValueError("Do not have enough resources to complete this quest.")
+        
+        player.removeResources(quest.requirements)
+
+        rewards,nQuests,numIntrigues = quest.rewards.toResources()
+        player.getResources(rewards)
+        player.resources.VPs += PLOT_BONUS_VP * player.completedPlotQuests[quest.type]
+        self.rewardQuests(player, nQuests)
+        self.rewardIntrigues(player, numIntrigues)
+
+        if quest.plot:
+            player.completedPlotQuests[quest.type] += 1
+        player.completedQuests.append(quest)
+        player.activeQuests.remove(quest)
+
+    def setResourcesToGive(self, resources: Resources):
+        assert self.resourcesToGive is None 
+        self.resourcesToGive = resources
+
+    def getResourcesToGive(self):
+        resourcesToGive = self.resourcesToGive
+        self.resourcesToGive = None 
+        if resourcesToGive is None:
+            resourcesToGive = Resources()
+        return resourcesToGive
+
+    def playIntrigue(self, currentPlayer: Player, intrigue: str):
+        assert intrigue in INTRIGUES,intrigue
+        # TODO: Sometiems this assert fails with intrigue = None ??
+        opponents = utils.getOpponents(self.players, currentPlayer)
+        if intrigue == 'Call in a Favor':
+            resource_options = STANDARD_RESOURCE_BUNDLES
+            # actionTypes["Call in a favor: select a resource bundle from standard resource bundles"] += 1
+            resource_idx = currentPlayer.selectMove(self, resource_options)
+            currentPlayer.getResources(resource_options[resource_idx])
+        elif intrigue in ['Lack of Faith', 'Ambush', 'Assassination', 'Arcane Mishap']:
+            if intrigue == 'Lack of Faith':
+                lostResources = Resources(clerics=1)
+                gainedResources = Resources(VPs=2)
+            elif intrigue == 'Ambush':
+                lostResources = Resources(fighters=1)
+                gainedResources = Resources(fighters=1)
+            elif intrigue == 'Assassination':
+                lostResources = Resources(rogues=1)
+                gainedResources = Resources(gold=2)
+            elif intrigue == 'Arcane Mishap':
+                lostResources = Resources(wizards=1)
+                gainedResources = 'Intrigue'
+            else:
+                raise ValueError(f"Unknown `remove + get` intrigue card: {intrigue}")
+            
+            n_rewards = self.removeFromOpponents(currentPlayer, lostResources)
+            if gainedResources == 'Intrigue':
+                self.rewardIntrigues(currentPlayer, n_rewards)
+            else:
+                currentPlayer.getResources(n_rewards * gainedResources)
+        elif intrigue in ['Spread the Wealth', 'Graduation Day', 'Conscription', 'Good Faith', 'Crime Wave']:
+            if intrigue == 'Spread the Wealth':
+                currentPlayer.getResources(Resources(gold=4))
+                oppResources = Resources(gold=2)
+            elif intrigue == 'Graduation Day':
+                currentPlayer.getResources(Resources(wizards=2))
+                oppResources = Resources(wizards=1)
+            elif intrigue == 'Conscription':
+                currentPlayer.getResources(Resources(fighters=2))
+                oppResources = Resources(fighters=1)
+            elif intrigue == 'Good Faith':
+                currentPlayer.getResources(Resources(clerics=2))
+                oppResources = Resources(clerics=1)
+            elif intrigue == 'Crime Wave':
+                currentPlayer.getResources(Resources(rogues=2))
+                oppResources = Resources(rogues=1)
+            else:
+                raise ValueError(f"Unknown `get + give` intrigue card: {intrigue}")
+            # actionTypes["Select an opponent to give a resource to."] += 1
+            self.setResourcesToGive(oppResources)
+            opponent_idx = currentPlayer.selectMove(self, opponents)
+            opponents[opponent_idx].getResources(oppResources)
+            self.resourcesToGive = None 
+        else:
+            raise ValueError(f"Unknown intrigue card: {intrigue}")
+
+    def takeTurn(self, currentPlayer: Player):
         '''Take a single turn in the turn order.'''
 
         # Return if you don't have any agents to play
@@ -141,64 +255,88 @@ class GameState():
         possibleMoves = utils.filterWaterdeep(possibleMoves)
 
         assert len(possibleMoves) > 0,"Issue if there are not enough buildings to play"
-        # ^^ This will happen without builder's hall in a 5-player game,
-        # or in any other game after round 4
         
         # If player has no intrigues, remove buildings 
         #   where you need to play an intrigue
-        if len(currentPlayer.intrigues) == 0:
+        if currentPlayer.numIntrigues() == 0:
             for building in possibleMoves:
-                if building.playIntrigue:
+                if isinstance(building, Building) and building.playIntrigue:
                     possibleMoves.remove(building)
 
+        # If player has insufficient gold, remove Builder's Hall
+        if BUILDERS_HALL in possibleMoves:
+            min_cost = min([building.cost for building in self.boardState.availableBuildings])
+            if currentPlayer.resources.gold < min_cost:
+                possibleMoves.remove(BUILDERS_HALL)
+        
+
         # Choose a building to play an agent at
+        # actionTypes["Choose a building to play an agent at (MAIN ACTION)"] += 1
         move_idx = currentPlayer.selectMove(self, possibleMoves) 
         building = possibleMoves[move_idx]
         self.boardState.buildings[building] = currentPlayer.name
         currentPlayer.agents -= 1
 
-        currentPlayer.getResources(building.rewards.toResources())
+        buildingRewards,buildingQuests,buildingIntrigues = building.rewards.toResources()
+        currentPlayer.getResources(buildingRewards)
         
-        if building.getCastle:
+        if isinstance(building, Building) and building.getCastle:
             currentPlayer.hasCastle = True 
 
-        if building.resetQuests:
+        if isinstance(building, Building) and building.resetQuests:
             self.boardState.resetQuests()
 
-        if building.rewards.intrigues > 0:
-            for _ in range(building.rewards.intrigues):
-                currentPlayer.getIntrigue(self.boardState.drawIntrigue())
+        self.rewardIntrigues(currentPlayer, buildingIntrigues)
+
+        if isinstance(building, CustomBuilding) and building.owner != currentPlayer.name:
+            owner = self.namesToPlayers[building.owner]
+            ownerRewardBundles = building.ownerRewards.split()
+            if len(ownerRewardBundles) > 1:
+                assert len(ownerRewardBundles) == 2,f"Owner rewards should only have either 1 or 2 options, but has {len(ownerRewardBundles)}"
+                # actionTypes["Choose which owner reward to receive from a building"] += 1
+                reward_idx = owner.selectMove(self, ownerRewardBundles)
+            else:
+                reward_idx = 0
+            
+            ownerRewards,ownerQuests,ownerIntrigues = ownerRewardBundles[reward_idx].toResources()
+            owner.getResources(ownerRewards)
+            assert ownerQuests == 0,"Owner should not receive quests from buildings"
+            self.rewardIntrigues(owner, ownerIntrigues)
 
         # Secondary choices (quest, intrigue card)
-        if building.rewards.quests > 0:
-            for _ in range(building.rewards.quests):
-                quest_idx = currentPlayer.selectMove(self, self.boardState.availableQuests)
-                quest = self.boardState.chooseQuest(quest_idx)
-                currentPlayer.getQuest(quest)
+        self.rewardQuests(currentPlayer, buildingQuests)
         
-        if building.playIntrigue:
-            if len(currentPlayer.intrigues) == 0:
+        if isinstance(building, Building) and building.playIntrigue:
+            if currentPlayer.numIntrigues() == 0:
                 raise ValueError(f'Player {currentPlayer.name} has no intrigue cards to play!')
             
-            # TODO (later): uncomment the below once we have different intrigue cards
-            # intrigue_idx = currentPlayer.selectMove(self, currentPlayer.intrigues)
-            intrigue_idx = 0
-            intrigue = currentPlayer.intrigues.pop(intrigue_idx)
-            if intrigue == "Choice of any resource":
-                resource_options = STANDARD_RESOURCE_BUNDLES
-                resource_idx = currentPlayer.selectMove(self, resource_options)
-                currentPlayer.getResources(resource_options[resource_idx])
-            else:
-                raise ValueError(f"Unknown intrigue card: {intrigue}")
+            # actionTypes["Choose an intrigue card to play"] += 1
+            playerUniqueIntrigues = currentPlayer.uniqueIntrigues()
+            uniqueIntrigueIdx = currentPlayer.selectMove(self, playerUniqueIntrigues)
+            intrigue = playerUniqueIntrigues[uniqueIntrigueIdx]
+            currentPlayer.removeIntrigue(intrigue)
+            self.playIntrigue(currentPlayer, intrigue)
+
+        if isinstance(building, Building) and building.buyBuilding:
+            # actionTypes["Choose which building from Builder's Hall to purchase"] += 1
+            affordableBuildings = [building for building in self.boardState.availableBuildings
+                                   if building.cost <= currentPlayer.resources.gold]
+            assert len(affordableBuildings) > 0
+            building_idx = currentPlayer.selectMove(self, affordableBuildings)
+            building = affordableBuildings[building_idx]
+            VPs,cost = self.boardState.purchaseBuilding(building, currentPlayer.name)
+            currentPlayer.getResources(Resources(VPs=VPs))
+            currentPlayer.removeResources(Resources(gold=cost))
 
         # Optionally complete a quest
         completableQuests = currentPlayer.completableQuests()
         if completableQuests:
+            # actionTypes["Choose which completable quest to complete"] += 1
             move_idx = currentPlayer.selectMove(self, [DO_NOT_COMPLETE_QUEST] + completableQuests) 
             if move_idx > 0:
-                currentPlayer.completeQuest(completableQuests[move_idx - 1])
+                self.completeQuest(currentPlayer, completableQuests[move_idx - 1])
 
-    def runGame(self, verbose=False):
+    def runGame(self):
         '''Umbrella function to run the game.'''
         while self.roundsLeft > 0:
             # Keep looping until a player runs out of agents
@@ -218,9 +356,6 @@ class GameState():
                     self.takeTurn(player)
 
             self.newRound()
-
-            if verbose:
-                print(self)
         
         # end game code
         scores = []
@@ -235,5 +370,5 @@ class GameState():
         return f"ROUNDS LEFT: {self.roundsLeft}\n\nBOARD STATE:\n{self.boardState}\nPLAYERS:" + "".join([f"{player}" for player in self.players])
 
 def main(agents):
-    gs = GameState(agents, numRounds=4)
-    gs.runGame(False)
+    gs = GameState(agents, numRounds=8)
+    return gs.runGame()#,actionTypes

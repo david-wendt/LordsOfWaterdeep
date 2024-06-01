@@ -18,6 +18,8 @@ LETTER_TO_QUEST_TYPE = {qtype[0]: qtype for qtype in QUEST_TYPES}
 
 DO_NOT_COMPLETE_QUEST = "Do not complete a quest"
 
+PLOT_BONUS_VP = 2
+
 @dataclass(frozen=True)
 class Quest:
     ''' Class representing a quest '''
@@ -25,9 +27,11 @@ class Quest:
     type: str 
     requirements: FixedResources 
     rewards: FixedResources 
+    plot: bool
 
     def __repr__(self) -> str:
-        return f"{self.name} ({self.type}):\n\t\tRequires {self.requirements}\n\t\tRewards {self.rewards}"
+        return f"{self.name} ({self.type}):\n\t\tRequires {self.requirements}\n\t\tRewards {self.rewards}"\
+            + f"\n\t\tPlot Quest (+2VP/future quest of type): {self.plot}"
 
 # Two quests that I originally edited:
 #     Quest('Convert a Noble to Lathander EDITED', PIETY,
@@ -39,7 +43,7 @@ class Quest:
 
 # TODO (later): add plot quests 
 
-def parseQuests():
+def parseQuests() -> list[Quest]:
     fname = 'data/quests.csv'
 
     df = pd.read_csv(
@@ -81,7 +85,8 @@ def parseQuests():
                 intrigues=row['I'],
                 quests=row['Quest'],
                 VPs=row['VP']
-            )
+            ),
+            plot=bool(row['Plot'])
         ))
 
     return quests
@@ -89,5 +94,23 @@ def parseQuests():
 QUESTS = parseQuests()
 
 def main():
+    # data = {qtype: [] for qtype in QUEST_TYPES}
     for quest in QUESTS:
+        # data[quest.type].append(quest.rewards.VPs)
         print(quest)
+
+    # for qtype,vps in data.items():
+    #     print(qtype, len(vps), np.mean(vps))
+    # print(len(QUESTS))
+
+    # df = pd.read_csv(
+    #     'data/quests.csv', comment='#'
+    # ).drop([
+    #     'Net',
+    #     'Net.1',
+    #     'Profit',
+    #     'Notes'
+    # ], axis=1)
+
+    # print(df.groupby('Type').count())
+    # print(df[['Type', 'Name', 'Special benefits']].loc[df.Type == 'C',])

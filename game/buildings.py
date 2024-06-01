@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from game.resources import FixedResources
 
+NUM_BUILDERS_HALL = 3
+
 @dataclass(frozen=True)
 class Building:
     name: str 
@@ -9,6 +11,7 @@ class Building:
     reassign: bool = False 
     getCastle: bool = False
     resetQuests: bool = False
+    buyBuilding: bool = False
 
     def __repr__(self):
         res = f"{self.name}: rewards"
@@ -49,14 +52,68 @@ DEFAULT_BUILDINGS = [
     Building("Waterdeep Harbor 1", FixedResources(), playIntrigue=True, reassign=True), # Waterdeep Harbor, first slot (for playing Intrigue)
     Building("Waterdeep Harbor 2", FixedResources(), playIntrigue=True, reassign=True), # Waterdeep Harbor, second slot (for playing Intrigue)
     Building("Waterdeep Harbor 3", FixedResources(), playIntrigue=True, reassign=True), # Waterdeep Harbor, third slot (for playing Intrigue)
-    # TODO (later) uncomment Builder's Hall
-    # "Builder's Hall": Resources(), # Builder's Hall (for buying Buildings)
+    Building("Builder's Hall", FixedResources(), buyBuilding=True), # Builder's Hall (for buying Buildings)
+]
+
+BUILDERS_HALL = DEFAULT_BUILDINGS[-1]
+
+@dataclass(frozen=True)
+class CustomBuilding:
+    name: str 
+    rewards: FixedResources
+    ownerRewards: FixedResources
+    cost: int
+    owner: str = None
+
+    def purchase(self, owner: str):
+        return CustomBuilding(
+            self.name, 
+            self.rewards,
+            self.ownerRewards,
+            self.cost,
+            owner
+        )
+
+CUSTOM_BUILDINGS = [ # Only simple ones, without any updating/spending/choosing
+    # NOTE: Multiple owner resources means OR, not AND!
+    CustomBuilding("Dragon Tower", FixedResources(wizards=1, intrigues=1), 
+                   FixedResources(intrigues=1), cost=3),
+    CustomBuilding("Fetlock Court", FixedResources(wizards=1, fighters=2), 
+                   FixedResources(wizards=1, fighters=1), cost=8),
+    CustomBuilding("Helmstar Warehouse", FixedResources(rogues=2, gold=2), 
+                   FixedResources(rogues=1), cost=3),
+    CustomBuilding("Helmstar Fighterhouse", FixedResources(fighters=2, gold=2), 
+                   FixedResources(fighters=1), cost=3),
+    CustomBuilding("House of Heroes", FixedResources(clerics=1, fighters=2), 
+                   FixedResources(clerics=1, fighters=1), cost=8),
+    CustomBuilding("House of Good Spirits, Cleric", FixedResources(fighters=1, clerics=1),
+                   FixedResources(fighters=1), cost=3),
+    CustomBuilding("House of Good Spirits, Wizard", FixedResources(fighters=1, wizards=1),
+                   FixedResources(fighters=1), cost=3),
+    CustomBuilding("House of Bad Spirits, Cleric", FixedResources(rogues=1, clerics=1),
+                   FixedResources(rogues=1), cost=3),
+    CustomBuilding("House of Bad Spirits, Wizard", FixedResources(rogues=1, wizards=1),
+                   FixedResources(rogues=1), cost=3),
+    CustomBuilding("The Yawning Clerics", FixedResources(clerics=2), 
+                   FixedResources(clerics=1), cost=4),
+    CustomBuilding("The Yawning Wizards", FixedResources(wizards=2), 
+                   FixedResources(wizards=1), cost=4),
+    CustomBuilding("House of the Moon", FixedResources(clerics=1, quests=1), 
+                   FixedResources(gold=2), cost=3),
+    CustomBuilding("New Olamn", FixedResources(rogues=2, wizards=1), 
+                   FixedResources(rogues=1, wizards=1), cost=8),
+    CustomBuilding("Northgate Wizard", FixedResources(wizards=1, gold=2), 
+                   FixedResources(VPs=2), cost=3),
+    CustomBuilding("Northgate Cleric", FixedResources(clerics=1, gold=2), 
+                   FixedResources(VPs=2), cost=3),
+    CustomBuilding("The Skulkway", FixedResources(rogues=1, fighters=1, gold=2), 
+                   FixedResources(rogues=1, fighters=1), cost=4),
+    CustomBuilding("The Tower of Luck", FixedResources(clerics=1, rogues=2), 
+                   FixedResources(clerics=1, rogues=1), cost=8),
 ]
 
 # Ensure buildings have unique names
-# TODO (later): include additional buildings (in the below)
-building_names = [building.name for building in DEFAULT_BUILDINGS] 
+building_names = [building.name for building in DEFAULT_BUILDINGS + CUSTOM_BUILDINGS] 
 assert len(building_names) == len(set(building_names)),"Buildings must have unique names!"
 
-# TODO (later): change the below to add all empty building slots
-NUM_ADDITIONAL_BUILDINGS = 0
+NUM_ADDITIONAL_BUILDINGS = 8

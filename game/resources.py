@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Self
 
 @dataclass 
 class Resources: 
@@ -14,15 +15,15 @@ class Resources:
         res = ""
         # if self.VPs > 0: # Only display VPs for FixedResources
         #     res += f"VPs: {self.VPs}, "
-        if self.wizards > 0:
+        if self.wizards != 0:
             res += f"wizards: {self.wizards}, "
-        if self.clerics > 0:
+        if self.clerics != 0:
             res += f"clerics: {self.clerics}, "
-        if self.fighters > 0:
+        if self.fighters != 0:
             res += f"fighters: {self.fighters}, "
-        if self.rogues > 0:
+        if self.rogues != 0:
             res += f"rogues: {self.rogues}, "
-        if self.gold > 0:
+        if self.gold != 0:
             res += f"gold: {self.gold}, "
 
         if res[-2:] == ", ":
@@ -41,6 +42,19 @@ class Resources:
             or self.intrigues
             or self.VPs
         )
+    
+    def __mul__(self, other: int):
+        assert isinstance(other, int)
+        return Resources(
+            wizards=self.wizards * other,
+            clerics=self.clerics * other,
+            fighters=self.fighters * other,
+            rogues=self.rogues * other,
+            gold=self.gold * other,
+            VPs=self.VPs * other,
+        )
+    
+    __rmul__ = __mul__
     
 @dataclass(frozen=True) 
 class FixedResources: 
@@ -90,7 +104,9 @@ class FixedResources:
             or self.VPs
         )
     
-    def toResources(self) -> Resources:
+    def toResources(self) -> tuple[Resources,int,int]:
+        ''' Returns tuple of (Resources, nQuests, nIntrigues)
+        from FixedResources. '''
         return Resources(
             wizards=self.wizards,
             clerics=self.clerics,
@@ -98,7 +114,29 @@ class FixedResources:
             rogues=self.rogues,
             gold=self.gold,
             VPs=self.VPs
-        )
+        ), self.quests, self.intrigues
+    
+    def split(self) -> list[Self]:
+        singleResourceBundles = []
+
+        if self.VPs > 0:
+            singleResourceBundles.append(FixedResources(VPs=self.VPs))
+        if self.wizards > 0:
+            singleResourceBundles.append(FixedResources(wizards=self.wizards))
+        if self.clerics > 0:
+            singleResourceBundles.append(FixedResources(clerics=self.clerics))
+        if self.fighters > 0:
+            singleResourceBundles.append(FixedResources(fighters=self.fighters))
+        if self.rogues > 0:
+            singleResourceBundles.append(FixedResources(rogues=self.rogues))
+        if self.gold > 0:
+            singleResourceBundles.append(FixedResources(gold=self.gold))
+        if self.quests > 0:
+            raise ValueError('Custom buildings should not give quests to owners!')
+        if self.intrigues > 0:
+            singleResourceBundles.append(FixedResources(intrigues=self.intrigues))
+        
+        return singleResourceBundles
 
 
 STANDARD_RESOURCE_BUNDLES = [
