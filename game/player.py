@@ -27,7 +27,7 @@ class Player():
         self.completedQuests = []
         # TODO (later): uncomment below
         self.completedPlotQuests = {qtype: 0 for qtype in QUEST_TYPES} # N completed plot quests per type 
-        self.intrigues = []
+        self.intrigues = [0] * len(INTRIGUES) # n of each type of intrigue card held
         self.agents = numAgents
         self.maxAgents = numAgents # Done like this because player objects have no access to game state
 
@@ -44,11 +44,18 @@ class Player():
     def __repr__(self):
         questTypes = ", ".join([quest.type for quest in self.activeQuests])
         res = self._base_repr()
-        res += f"\n\tIngrigues: {len(self.intrigues)}"
+        res += f"\n\tIngrigues: {self.numIntrigues()}"
         res += f"\n\tQuests: {questTypes}" # NOTE: Full quest info
         # should be public, but I thought it would be too clunky for this repr
         return res
     
+    def _repr_intrigues(self):
+        res = ""
+        for i,intrigue in enumerate(INTRIGUES):
+            count = self.intrigues[i]
+            if count > 0:
+                res += f"{intrigue} ({count})"
+
     def _private_repr(self):
         activeQuests = ""
         for quest in self.activeQuests:
@@ -60,7 +67,7 @@ class Player():
         ]
         return self.__repr__() \
             + f"\n\tSecret Identity: {self.lordCard}" \
-            + f"\n\tIntrigues: {self.intrigues}" \
+            + f"\n\tIntrigues: " + self._repr_intrigues() \
             + f"\n\tActive Quests: {activeQuests}" \
             + f"\n\tCompleted Quests: {completedQuestNames}"
 
@@ -73,6 +80,8 @@ class Player():
         '''
         self.activeQuests.append(quest)
 
+    def numIntrigues(self) -> int:
+        return sum(self.intrigues)
 
     def getIntrigue(self, intrigue: str):
         '''
@@ -81,10 +90,26 @@ class Player():
         Args: 
             intrigue: the intrigue card to receive.
         '''
-        self.intrigues.append(intrigue)
+        self.intrigues[INTRIGUES.index(intrigue)] += 1
+
+    def removeIntrigue(self, intrigue: str):
+        assert isinstance(intrigue, str)
+        assert self.intrigues[INTRIGUES.index(intrigue)] >= 1
+        self.intrigues[INTRIGUES.index(intrigue)] -= 1
+    
+    def uniqueIntrigues(self) -> list[str]:
+        res = []
+        for i,intrigue in enumerate(INTRIGUES):
+            count = self.intrigues[i]
+            if count > 0:
+                res.append(intrigue)
+        return res
 
     def getResources(self, resources: Resources):
         ''' Receive a resource bundle `resources` '''
+        # TODO: This should probably be an __add__ method 
+        # of the Resources class, and just do
+        # self.resources += resource here
         if isinstance(resources, FixedResources):
             raise TypeError("Player can only get Resources, not FixedResources!")
         self.resources.clerics += resources.clerics
@@ -179,7 +204,7 @@ class Player():
         )
 
         # Intrigues 
-        score += len(self.intrigues) / 2.
+        score += self.numIntrigues() / 2.
 
         # Castle Waterdeep
         score += self.hasCastle / 2.
@@ -221,7 +246,7 @@ class Player():
     def clear(self):
         self.activeQuests = []
         self.completedQuests = []
-        self.intrigues = []
+        self.intrigues = [0] * len(INTRIGUES) # n of each type of intrigue card held
         self.hasCastle = False 
 
     def endGame(self): 

@@ -101,12 +101,13 @@ class BoardState():
         self.availableQuests[quest_idx] = self.drawQuest()
         return quest 
     
-    def purchaseBuilding(self, building_idx: int, owner: str):
+    def purchaseBuilding(self, building: CustomBuilding, owner: str):
         ''' Choose available building with index building_idx,
         replacing it with a new building and adding it to
         self.buildings with owner `owner`. Returns the 
-        number of victory points awarded to the purchaser. '''
-        building = self.availableBuildings[building_idx]
+        number of victory points awarded to the purchaser,
+        and the cost of gold to be removed from the purchaser. '''
+        building_idx = self.availableBuildings.index(building)
         VPs = self.buildersHallVPs[building_idx]
         self.buildersHallVPs[building_idx] = 0
         self.availableBuildings[building_idx] = self.drawBuilding()
@@ -116,7 +117,7 @@ class BoardState():
         self.customBuildings.append(purchasedBuilding)
         # TODO: If we implement building lord card, keep track 
         # of # buildings owned in player state
-        return VPs
+        return VPs,building.cost
 
     def resetQuests(self):
         ''' Reset the quests at Cliffwatch Inn '''

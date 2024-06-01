@@ -55,6 +55,8 @@ DEFAULT_BUILDINGS = [
     Building("Builder's Hall", FixedResources(), buyBuilding=True), # Builder's Hall (for buying Buildings)
 ]
 
+BUILDERS_HALL = DEFAULT_BUILDINGS[-1]
+
 @dataclass(frozen=True)
 class CustomBuilding:
     name: str 

@@ -2,16 +2,19 @@ from game import game
 from agents.baseline.manual_agent import ManualAgent
 from agents.baseline.random_agent import RandomAgent
 from game import quests
+import printing_utils 
 
 def main():
-    agents = [RandomAgent(), RandomAgent()]
     # agents = [ManualAgent(), RandomAgent()]
+    agents = [RandomAgent(), RandomAgent()]
     wins = []
     ties = []
     for i in range(100):
+        # results,actionTypes = game.main(agents)
         results = game.main(agents)
         if i % 10 == 0:
             print(results)
+            # printing_utils.pprint(actionTypes)
 
         vps = results[1]
         wins.append(vps[0] > vps[1])
@@ -22,3 +25,4 @@ def main():
 if __name__ == '__main__':
     # quests.main()
     main()
+    # game.main()

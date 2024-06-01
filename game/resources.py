@@ -15,15 +15,15 @@ class Resources:
         res = ""
         # if self.VPs > 0: # Only display VPs for FixedResources
         #     res += f"VPs: {self.VPs}, "
-        if self.wizards > 0:
+        if self.wizards != 0:
             res += f"wizards: {self.wizards}, "
-        if self.clerics > 0:
+        if self.clerics != 0:
             res += f"clerics: {self.clerics}, "
-        if self.fighters > 0:
+        if self.fighters != 0:
             res += f"fighters: {self.fighters}, "
-        if self.rogues > 0:
+        if self.rogues != 0:
             res += f"rogues: {self.rogues}, "
-        if self.gold > 0:
+        if self.gold != 0:
             res += f"gold: {self.gold}, "
 
         if res[-2:] == ", ":
