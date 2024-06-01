@@ -222,6 +222,7 @@ class Player():
         return score 
 
     def selectMove(self, gameState, actions):
+        assert len(actions) > 0
         if isinstance(self.agent, ManualAgent):
             print("\n\nCURRENT PLAYER:", self.name, "(manual agent) must select a move.")
             

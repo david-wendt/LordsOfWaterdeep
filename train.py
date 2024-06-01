@@ -55,7 +55,7 @@ def train(agents, n_games, verbose=False):
     }
 
     for igame in tqdm(range(n_games), disable=not verbose):
-        game = GameState(agents, numRounds=4)
+        game = GameState(agents, numRounds=8)
         scores,VPs = game.runGame() 
         # print(scores)
         appendStats(stats, scores, VPs, n_agents)
