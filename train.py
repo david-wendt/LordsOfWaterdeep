@@ -2,74 +2,22 @@ import numpy as np
 from tqdm import tqdm
 import argparse
 
+from agents.agent import Agent
 from agents.rl.dqn import DeepQNet, DQNAgent
 from agents.baseline.random_agent import RandomAgent
 from game.game import GameState
 from features import featurize
+import eval 
 
-STATS = [
-    'wins', # True if won, False if lost
-    'scores', # Final score at the end of the game
-    'VPs', # Final number of VPs at the end of the game
-    'score edge', # Difference between best player and you 
-    'VP edge',    # (or you and second best, if you won)
-]
+def setTrain(agents: list[Agent]):
+    for agent in agents:
+        agent.train()
 
-def appendStats(stats, scores, VPs, n_agents):
-
-    # Collect stats
-    for iagent in range(n_agents):
-        stats['scores'][iagent].append(scores[iagent])
-        stats['VPs'][iagent].append(VPs[iagent])
-        
-        if iagent == np.argmax(VPs):
-            stats['wins'][iagent].append(True)
-            stats['scores'][iagent].append(scores[iagent])
-            stats['VPs'][iagent].append(VPs[iagent])
-
-            otherVPs = VPs.copy()
-            otherVPs.pop(iagent)
-            stats['VP edge'][iagent].append(VPs[iagent] - np.max(otherVPs))
-        else:
-            stats['wins'][iagent].append(False) 
-            stats['scores'][iagent].append(scores[iagent])
-            stats['VPs'][iagent].append(VPs[iagent])
-            stats['VP edge'][iagent].append(VPs[iagent] - np.max(VPs))
-
-
-        if iagent == np.argmax(scores):
-            otherScores = scores.copy()
-            otherScores.pop(iagent)
-            stats['score edge'][iagent].append(scores[iagent] - np.max(otherScores))
-        else:
-            stats['score edge'][iagent].append(scores[iagent] - np.max(scores))
-
-def train(agents, n_games, verbose=False):
-    n_agents = len(agents)
-    stats = {
-        statname: {
-            iagent: []
-            for iagent in range(n_agents)
-        }
-        for statname in STATS
-    }
-
-    for igame in tqdm(range(n_games), disable=not verbose):
+def train(agents, n_games):
+    setTrain(agents)
+    for _ in tqdm(range(n_games), desc='Training'):
         game = GameState(agents, numRounds=8)
-        scores,VPs = game.runGame() 
-        # print(scores)
-        appendStats(stats, scores, VPs, n_agents)
-    
-    mean_stats = {
-    statname: [
-            str(round(np.mean(stats[statname][iagent]),2)) 
-            for iagent in range(len(agents))
-        ]
-        for statname in STATS
-    }
-    print(mean_stats)
-    return mean_stats
-
+        game.runGame() 
     
 def main(args):
     nPlayers = 2
@@ -84,10 +32,10 @@ def main(args):
     agents = [deepQAgent, randomAgent]
     assert len(agents) == len(agentTypes) == nPlayers
 
-    n_games = args.ngames
-    mean_stats = train(agents=agents, n_games=n_games, verbose=True)
+    train(agents=agents, n_games=args.train_ngames)
+    mean_stats = eval.eval(agents=agents, n_games=args.eval_ngames, verbose=True)
 
-    results_fname = f'results/dqn_vs_random_{n_games}games.txt'
+    results_fname = f'results/dqn_vs_random_{args.train_ngames}games.txt'
     with open(results_fname, 'w') as f:
         f.write("\n".join([
             "Agent types:\t\t" + ",\t".join(agentTypes),
@@ -101,7 +49,8 @@ def main(args):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ngames", type=int, default=int(1e3))
+    parser.add_argument("--train_ngames", type=int, default=int(1e3))
+    parser.add_argument("--eval_ngames", type=int, default=int(1e2))
     args = parser.parse_args()
     
     main(args)

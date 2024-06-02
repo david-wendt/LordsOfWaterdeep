@@ -142,13 +142,22 @@ class DQNAgent(Agent):
         self.episode = 0
         self.target_reset_freq = 1000
 
+    def train(self):
+        super().train()
+        self.q_net.train()
+
+    def eval(self):
+        super().eval()
+        self.q_net.eval()
+
     def update_target(self):
         self.target_net.load_state_dict(self.q_net.state_dict())
         self.target_net.requires_grad_(False) # Freeze the target net
+        self.target_net.eval()
 
     # started from code from https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html and adjusted
-    def optimize_model(self, train):
-        if train != True:
+    def optimize_model(self):
+        if not self.trainMode:
             return
         # get BATCH_SIZE
         if len(self.memory) < self.batch_size:
@@ -185,10 +194,8 @@ class DQNAgent(Agent):
         next_state_values = torch.zeros(self.batch_size, device=DEVICE)
 
         with torch.no_grad():
-            # TODO - need to mask with action_mask
             next_state_values[non_final_mask] = (self.target_net(non_final_next_states) + 1e10 * (action_mask_batch[non_final_mask] - 1)).max(1).values
 
-            
 
         # Compute the expected Q values
         expected_state_action_values = (next_state_values * self.discount_factor) + reward_batch
@@ -205,16 +212,16 @@ class DQNAgent(Agent):
         torch.nn.utils.clip_grad_value_(self.q_net.parameters(), 100)
         self.optimizer.step()
 
-    def end_game(self, score, train=True):
+    def end_game(self, score):
         reward = torch.tensor([score - self.prev_score], dtype=torch.float32).to(DEVICE)
         self.memory.push(self.prev_state, self.prev_action, None, reward, torch.zeros(self.action_dim))
-        self.optimize_model(train)
+        self.optimize_model()
         
         self.prev_state = None
         self.prev_action = None
     
     # epsilon greedy policy
-    def act(self, gameState, playerState, actions, score, train=True):
+    def act(self, gameState, playerState, actions, score):
         # at the end of the game method called end game
         # on every agent do a final update
         # at start of act, only do push if prev_state is not None else move on
@@ -227,7 +234,7 @@ class DQNAgent(Agent):
         if self.prev_state is not None:
             reward = torch.tensor([score - self.prev_score], dtype=torch.float32).to(DEVICE)
             self.memory.push(self.prev_state, self.prev_action, state_tensor, reward, action_mask)
-            self.optimize_model(train)
+            self.optimize_model()
 
         self.prev_state = state_tensor
         self.prev_score = score
@@ -236,21 +243,24 @@ class DQNAgent(Agent):
         if self.episode % self.target_reset_freq == 0:
             self.update_target()
 
-        # call featurize (state, list of actions)
-        # gives features, binary encoding of available actions
-        # self.eps = self.eps * math.exp(-1. / self.eps_decay) # Old version
-        self.eps *= self.eps_decay # I think this is conceptually simpler - DW
+        if self.trainMode:
+            # call featurize (state, list of actions)
+            # gives features, binary encoding of available actions
+            # self.eps = self.eps * math.exp(-1. / self.eps_decay) # Old version
+            self.eps *= self.eps_decay # I think this is conceptually simpler - DW
 
 
         available_action_indices = np.arange(self.action_dim)[action_mask.cpu().bool()].tolist()
         sample = random.random()
-        if sample > self.eps:
+        if self.trainMode and sample < self.eps:
+            # Random action
+            available_action_idx = torch.randint(0,len(actions),(1,))
+            action_idx = torch.tensor(available_action_indices[available_action_idx]).to(DEVICE)
+        else:
+            # Q argmax action (always take in eval mode)
             with torch.no_grad():
                 action_idx = torch.argmax(self.q_net(state_tensor) + 1e10 * (action_mask - 1)) # mask with actions_mask
                 available_action_idx = available_action_indices.index(action_idx)
-        else:
-            available_action_idx = torch.randint(0,len(actions),(1,))
-            action_idx = torch.tensor(available_action_indices[available_action_idx]).to(DEVICE)
 
         self.prev_action = action_idx.unsqueeze(0) # add dim
 

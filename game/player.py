@@ -227,7 +227,7 @@ class Player():
             print("\n\nCURRENT PLAYER:", self.name, "(manual agent) must select a move.")
             
         score = self.score()
-        return self.agent.act(gameState, self, actions, score)
+        return self.agent.actWrapper(gameState, self, actions, score)
     
     def convertResourcesToVPs(self):
         self.resources.VPs += (
@@ -259,7 +259,6 @@ class Player():
         self.lordCardToVPs()
         self.clear()
 
-        # TODO (later): once we implement more stuff, call score again here and check it is the same
         finalScore = self.resources.VPs * SCORE_PER_VP
         self.agent.end_game(finalScore)
         return score
