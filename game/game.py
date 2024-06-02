@@ -272,6 +272,18 @@ class GameState():
 
         # Choose a building to play an agent at
         # actionTypes["Choose a building to play an agent at (MAIN ACTION)"] += 1
+        if len(possibleMoves) == 0:
+
+            # Optionally complete a quest
+            completableQuests = currentPlayer.completableQuests()
+            if completableQuests:
+                # actionTypes["Choose which completable quest to complete"] += 1
+                move_idx = currentPlayer.selectMove(self, [DO_NOT_COMPLETE_QUEST] + completableQuests) 
+                if move_idx > 0:
+                    self.completeQuest(currentPlayer, completableQuests[move_idx - 1])
+            
+            return currentPlayer
+         
         move_idx = currentPlayer.selectMove(self, possibleMoves) 
         building = possibleMoves[move_idx]
         self.boardState.buildings[building] = currentPlayer.name
@@ -340,10 +352,18 @@ class GameState():
         '''Umbrella function to run the game.'''
         while self.roundsLeft > 0:
             # Keep looping until a player runs out of agents
+            playerOutOfMoves = None
             while sum([player.agents for player in self.players]) > 0:
-                self.takeTurn(self.players[0])
+                e = self.takeTurn(self.players[0])
                 # Reorder turn order to show that the player has moved.
                 self.players = self.players[1:] + [self.players[0]]
+
+                if e is not None:
+                    # A player, `e`, could not make a move
+                    if playerOutOfMoves == e:
+                        # This same player could not make a move twice in a row
+                        break # so we exit the loop of turns in the round
+                    playerOutOfMoves = e
 
             # Reassign agents from waterdeep harbor
             waterdeepHarbors = utils.getWaterdeepHarbors(self.boardState.buildings)

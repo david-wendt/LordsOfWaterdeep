@@ -9,11 +9,11 @@ def main():
     agents = [RandomAgent(), RandomAgent()]
     wins = []
     ties = []
-    for i in range(100):
+    for i in range(10000):
         # results,actionTypes = game.main(agents)
         results = game.main(agents)
-        if i % 10 == 0:
-            print(results)
+        if i % 1000 == 0:
+            print(i,results)
             # printing_utils.pprint(actionTypes)
 
         vps = results[1]
