@@ -161,7 +161,9 @@ class GameState():
         if not player.isValidQuestCompletion(quest):
             raise ValueError("Do not have enough resources to complete this quest.")
         
-        player.removeResources(quest.requirements)
+        requirements,reqQuests,reqIntrigues = quest.requirements.toResources()
+        assert reqQuests == reqIntrigues == 0
+        player.removeResources(requirements)
 
         rewards,nQuests,numIntrigues = quest.rewards.toResources()
         player.getResources(rewards)

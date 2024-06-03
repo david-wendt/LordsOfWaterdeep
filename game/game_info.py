@@ -4,6 +4,7 @@ from game.buildings import *
 from game.intrigues import *
 
 SCORE_PER_VP = 0.5 
+assert SCORE_PER_VP == SCORE_PER_VP_2
 # 'Score' here means 'one turn's worth of value'
 # and at the end of the game you can get 2VP/turn.
 # However, we need to make sure that completing a quest
@@ -19,6 +20,7 @@ for i,type1 in enumerate(QUEST_TYPES):
         LORD_CARDS.append((type1, type2))
 # TODO (later version): uncomment building lord card
 # LORD_CARDS.append("Buildings")
+LORD_BONUS_VP = 4
 
 NUM_CLIFFWATCH_QUESTS = 4
 
