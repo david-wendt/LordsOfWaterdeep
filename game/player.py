@@ -107,31 +107,13 @@ class Player():
 
     def getResources(self, resources: Resources):
         ''' Receive a resource bundle `resources` '''
-        # TODO: This should probably be an __add__ method 
-        # of the Resources class, and just do
-        # self.resources += resource here
-        if isinstance(resources, FixedResources):
-            raise TypeError("Player can only get Resources, not FixedResources!")
-        self.resources.clerics += resources.clerics
-        self.resources.wizards += resources.wizards
-        self.resources.rogues += resources.rogues
-        self.resources.fighters += resources.fighters
-        self.resources.gold += resources.gold
-        self.resources.VPs += resources.VPs
+        self.resources += resources
         
     def removeResources(self, resources: Resources):
         if resources.VPs != 0:
             raise ValueError("Cannot remove VPs!")
-        
-        negResources = Resources(
-            wizards= -resources.wizards,
-            clerics= -resources.clerics,
-            fighters= -resources.fighters,
-            rogues= -resources.rogues,
-            gold= -resources.gold,
-        )
 
-        self.getResources(negResources)
+        self.resources -= resources
 
         # Check that all resource counts are still nonnegative
         self.validateResources()
@@ -216,7 +198,7 @@ class Player():
         for quest in self.completedQuests:
             # Lord card bonus
             if quest.type in self.lordCard:
-                score += 4 * SCORE_PER_VP
+                score += LORD_BONUS_VP * SCORE_PER_VP
             # TODO (later version): add check for lordCard = "Buildings"
 
         return score 
@@ -242,7 +224,7 @@ class Player():
     def lordCardToVPs(self):
         for quest in self.completedQuests:
             if quest.type in self.lordCard:
-                self.resources.VPs += 4
+                self.resources.VPs += LORD_BONUS_VP
 
     def clear(self):
         self.activeQuests = []

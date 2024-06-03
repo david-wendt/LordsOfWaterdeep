@@ -45,3 +45,6 @@ class Agent():
     def act(self, state, playerState, actions, score) -> int:
         ''' Override this in subclasses'''
         raise NotImplementedError
+    
+    def end_game(self, score):
+        return
