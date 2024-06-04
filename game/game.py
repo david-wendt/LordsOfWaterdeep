@@ -396,6 +396,6 @@ class GameState():
     def __repr__(self) -> str:
         return f"ROUNDS LEFT: {self.roundsLeft}\n\nBOARD STATE:\n{self.boardState}\nPLAYERS:" + "".join([f"{player}" for player in self.players])
 
-def main(agents):
-    gs = GameState(agents, numRounds=8)
-    return gs.runGame()#,actionTypes
+# def main(agents):
+#     gs = GameState(agents, numRounds=8)
+#     return gs.runGame()#,actionTypes
