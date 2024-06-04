@@ -31,7 +31,7 @@ def main(args):
 
     eval_results = []
     eval_results_2 = []
-    for iteration in range(25):
+    for iteration in range(35):
         mean_stats = eval.eval(agents=agents1, n_games=args.eval_ngames, verbose=True)
         eval_results.append(mean_stats)
         mean_stats_2 = eval.eval(agents=agents2, n_games=args.eval_ngames, verbose=True)
@@ -47,16 +47,22 @@ def main(args):
         'games_played': [],
         'agent': [],
         'wins': [],
-        'VPs': []
+        'VPs': [],
+        'scores': [],
+        'score_edge': [],
+        'VP_edge': []
     }
 
     for iteration, result in enumerate(eval_results):
         for agent, stats in enumerate(zip(*result.values())):
             if agent % 2 == 0:
                 data['games_played'].append(iteration * 100)
-                data['agent'].append("DeepQ")
+                data['agent'].append("DQN")
                 data['wins'].append(float(stats[0]))
                 data['VPs'].append(float(stats[2]))
+                data['scores'].append(float(stats[1]))
+                data['score_edge'].append(float(stats[3]))
+                data['VP_edge'].append(float(stats[4]))
     for iteration, result in enumerate(eval_results_2):
         for agent, stats in enumerate(zip(*result.values())):
             if agent % 2 == 0:
@@ -64,16 +70,19 @@ def main(args):
                 data['agent'].append("REINFORCE")
                 data['wins'].append(float(stats[0]))
                 data['VPs'].append(float(stats[2]))
-
+                data['scores'].append(float(stats[1]))
+                data['score_edge'].append(float(stats[3]))
+                data['VP_edge'].append(float(stats[4]))
     df = pd.DataFrame(data)
+    df.to_csv('evaluation_results.csv', index=False)
 
     sns.set(style="whitegrid")
 
     plt.figure(figsize=(10, 6))
     sns.lineplot(data=df, x='games_played', y='wins', hue='agent', marker='o')
-    plt.title('Wins over Training Games')
+    plt.title('Win Rate over Training Games')
     plt.xlabel('Training Games')
-    plt.ylabel('Wins')
+    plt.ylabel('Win Rate')
     plt.legend(title='Agent')
     plt.show()
 
