@@ -24,6 +24,12 @@ def getWaterdeepHarbors(buildings: dict[Building,str]):
         if isinstance(building, Building) and building.reassign
     ], key=lambda building: building.name)
 
+def getUnoccupiedWaterdeepHarbors(buildings: dict[Building,str]):
+    return sorted([
+        building for building,occupier in buildings.items()
+        if isinstance(building, Building) and building.reassign and occupier is None
+    ], key=lambda building: building.name)
+
 def reorderPlayers(players: list[Player], currentPlayer: Player):
      # Reorder players so currentPlayer is always first
     players = players.copy()

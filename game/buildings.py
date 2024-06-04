@@ -56,6 +56,8 @@ DEFAULT_BUILDINGS = [
 ]
 
 BUILDERS_HALL = DEFAULT_BUILDINGS[-1]
+for building in DEFAULT_BUILDINGS:
+    assert ("Waterdeep Harbor" in building.name) == building.playIntrigue == building.reassign
 
 @dataclass(frozen=True)
 class CustomBuilding:

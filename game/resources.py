@@ -102,14 +102,16 @@ class Resources:
             + self.gold / 4.
         ) / 5. 
     
-    def toFixedResources(self):
+    def toFixedResources(self, quests=0, intrigues=0):
         return FixedResources(
             wizards=self.wizards,
             clerics=self.clerics,
             fighters=self.fighters,
             rogues=self.rogues,
             gold=self.gold,
-            VPs=self.VPs
+            VPs=self.VPs,
+            quests=quests,
+            intrigues=intrigues
         )
 
     
