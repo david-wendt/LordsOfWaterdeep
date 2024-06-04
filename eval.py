@@ -66,10 +66,9 @@ def eval(agents: list[Agent], n_games: int = 100, verbose=False):
     
     mean_stats = {
     statname: [
-            str(round(np.mean(stats[statname][iagent]),2)) 
+            np.mean(stats[statname][iagent]) 
             for iagent in range(len(agents))
         ]
         for statname in STATS
     }
-    print(mean_stats)
     return mean_stats
