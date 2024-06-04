@@ -59,64 +59,71 @@ class AbstractStrategicAgent(Agent):
         with structure of assertions slightly changed but functionally
         the same.)
         '''
-
         if isinstance(actions[0], Building) or (
             isinstance(actions[0], CustomBuilding) 
                 and actions[0].owner is not None):
+            print("case 1")
             # Action type: Choose a building in which to place an agent
             for building in actions:
                 if isinstance(building, CustomBuilding):
                     assert building.owner is not None 
                 else:
                     assert isinstance(building, Building)
-
-            self.placeAgent(gameState, playerState, actions)
+            return self.placeAgent(gameState, playerState, actions)
         
         elif isinstance(actions[0], Quest):
+            print("case 2")
             # Action type: Choose which quest from Cliffwatch to take
             assert len(actions) == NUM_CLIFFWATCH_QUESTS
             for i,quest in enumerate(actions):
                 assert isinstance(quest, Quest)
             
-            self.chooseQuest(gameState, playerState, actions)
+            return self.chooseQuest(gameState, playerState, actions)
 
         elif actions[0] == DO_NOT_COMPLETE_QUEST:
+            print("case 3")
             # Action type: Choose which active quest to complete, or to not complete any
             for i,action in enumerate(actions):
                 if i != 0: assert isinstance(action, Quest)
             
-            self.completeQuest(gameState, playerState, actions)
+            return self.completeQuest(gameState, playerState, actions)
 
         elif isinstance(actions[0], CustomBuilding) and actions[0].owner is None:
+            print("case 4")
             # Action type: Choose which building from Builder's Hall to purchase
             # (out of the affordable subset)
             assert len(actions) <= NUM_BUILDERS_HALL
             for building in actions:
                 assert isinstance(building, CustomBuilding) and building.owner is None
-            self.purchaseBuilding(gameState, playerState, actions)
+            return self.purchaseBuilding(gameState, playerState, actions)
 
         elif isinstance(actions[0], FixedResources):
+            print("case 5")
             # Action type: Choose which of two owner rewards to take as building owner
             assert len(actions) == 2 and isinstance(actions[1], FixedResources)
-            self.chooseReward(gameState, playerState, actions)
+            return self.chooseReward(gameState, playerState, actions)
 
         elif isinstance(actions[0], str):
+            print("case 6")
             # Action type: Choose which intrigue card to play
             assert set(actions).issubset(INTRIGUES)
-            self.playIntrigue(gameState, playerState, actions)
+            return self.playIntrigue(gameState, playerState, actions)
 
         elif isinstance(actions[0], Player):
+            print("case 7")
             # Action type: Choose which opponent to give a resource to
             opponents = utils.getOpponents(gameState.players, playerState)
             assert actions == opponents and len(actions) == gameState.numPlayers - 1
-            self.giveResource(gameState, playerState, actions)
+            return self.giveResource(gameState, playerState, actions)
 
         elif isinstance(actions[0], Resources):
+            print("case 8")
             # Action type: Choose which standard resource bundle to get as a reward for 'Call in a Favor' intrigue card
             assert actions == STANDARD_RESOURCE_BUNDLES
-            self.chooseReward(gameState, playerState, actions)
+            return self.chooseReward(gameState, playerState, actions)
 
         else:
+            print("case 9")
             raise ValueError("Unknown action type:", actions)
         
 class BasicStrategicAgent(AbstractStrategicAgent):
@@ -124,11 +131,21 @@ class BasicStrategicAgent(AbstractStrategicAgent):
                    actions: list[Building | CustomBuilding]):
         '''Choose a building in which to place an agent'''
         waterdeepHarbors = utils.getWaterdeepHarbors(actions)
-        if len(waterdeepHarbors) > 0 and player.numIntrigues() and np.random.rand() < 0.5:
-            return actions.index(waterdeepHarbors[0])
+        # if there is an open spot to play an intrigue card and you have one play it half the time
+        if player.numIntrigues():
+            if len(waterdeepHarbors) == 3 or len(waterdeepHarbors) == 1 and np.random.rand() < 0.5 or np.random.rand() < 0.5:
+                print("case a", actions.index(waterdeepHarbors[0]))
+                return actions.index(waterdeepHarbors[0])
+        # if you can build a building then do it half the time
         if BUILDERS_HALL in actions and np.random.rand() < 0.5:
+            print("case b", actions.index(BUILDERS_HALL))
             return actions.index(BUILDERS_HALL)
+        # otherwise maximize function of resources needed
         resourcesNeeded = strategy_utils.resourcesNeeded(player)
+        print("case c", np.argmax([
+            resourcesNeeded.dot(building.rewards)
+            for building in actions
+        ]))
         return np.argmax([
             resourcesNeeded.dot(building.rewards)
             for building in actions
@@ -164,6 +181,7 @@ class BasicStrategicAgent(AbstractStrategicAgent):
             For now, pick the one which gives owners the rewards
             that the player currently needs'''
         resourcesNeeded = strategy_utils.resourcesNeeded(player)
+
         return np.argmax([
             building.ownerRewards.dot(resourcesNeeded)
             for building in actions
