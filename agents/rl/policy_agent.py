@@ -119,20 +119,21 @@ class PolicyAgent(Agent):
         self.prev_state = None
         self.prev_action = None
         self.episode_reward += reward
-        path = {
-            "observation": np.array(self.states),
-            "reward": np.array(self.rewards),
-            "action": np.array(self.actions),
-            "action_mask" : np.array(self.action_masks),
-            "log_prob" : np.array(self.log_probs)
-        }
+        if self.trainMode:
+            path = {
+                "observation": np.array(self.states),
+                "reward": np.array(self.rewards),
+                "action": np.array(self.actions),
+                "action_mask" : np.array(self.action_masks),
+                "log_prob" : np.array(self.log_probs)
+            }
 
-        self.paths.append(path)
-        self.train_episode += 1
-        if self.t >= self.batch_size:
-            self.t = 0
-            self.update_policy()
-            self.paths = []
+            self.paths.append(path)
+            self.train_episode += 1
+            if self.t >= self.batch_size:
+                self.t = 0
+                self.update_policy()
+                self.paths = []
 
         self.states, self.rewards, self.actions, self.log_probs, self.action_masks = [], [], [], [], []
         self.episode_reward = 0
