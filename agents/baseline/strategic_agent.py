@@ -130,6 +130,7 @@ class BasicStrategicAgent(AbstractStrategicAgent):
     def placeAgent(self, game: GameState, player: Player, 
                    actions: list[Building | CustomBuilding]):
         '''Choose a building in which to place an agent'''
+        # return np.random.randint(0,len(actions))
         waterdeepHarbors = utils.getWaterdeepHarbors(actions)
         nFreeWaterdeepHarbors = len(utils.getUnoccupiedWaterdeepHarbors(game.boardState.buildings))
         # if there is an open spot to play an intrigue card and you have one play it half the time
@@ -159,6 +160,7 @@ class BasicStrategicAgent(AbstractStrategicAgent):
         '''Choose which quest from Cliffwatch to take.
         Choose the best lord-aligned quest if one is available,
         otherwise the best quest.'''
+        # return np.random.randint(0,len(actions))
         quests = strategy_utils.rankQuests(actions, player.lordCard)
         lordQuestIndices = strategy_utils.lordQuests(quests, player.lordCard)
         plotQuestIndices = strategy_utils.plotQuests(quests)
@@ -177,6 +179,7 @@ class BasicStrategicAgent(AbstractStrategicAgent):
                      actions: list[Quest]):
         '''Choose which active quest to complete, or to not complete any.
         For now: always complete a quest if you can.'''
+        # return np.random.randint(0,len(actions))
         assert actions[0] == DO_NOT_COMPLETE_QUEST
         if len(actions) > 2:
             return self.chooseQuest(game, player, actions[1:])
@@ -191,6 +194,7 @@ class BasicStrategicAgent(AbstractStrategicAgent):
             
             For now, pick the one which gives owners the rewards
             that the player currently needs'''
+        # return np.random.randint(0,len(actions))
         resourcesNeeded = strategy_utils.resourcesNeeded(player)
 
         return np.argmax([
@@ -203,6 +207,7 @@ class BasicStrategicAgent(AbstractStrategicAgent):
         '''Choose which of two owner rewards to take as building owner,
         OR Choose which standard resource bundle to get as a reward 
             for 'Call in a Favor' intrigue card'''
+        # return np.random.randint(0,len(actions))
         
         resourcesNeeded = strategy_utils.resourcesNeeded(player)
         return np.argmax([
@@ -213,9 +218,10 @@ class BasicStrategicAgent(AbstractStrategicAgent):
     def playIntrigue(self, game: GameState, player: Player, 
                     actions: list[str]):
         '''Choose which intrigue card to play'''
+        # return np.random.randint(0,len(actions))
         opponents = utils.getOpponents(game.players, player)
         resourcesNeeded = strategy_utils.resourcesNeeded(player)
-        return np.argmax([
+        return np.argmax([ 
             strategy_utils.scoreIntrigue(action, resourcesNeeded, opponents)
             for action in actions
         ])
@@ -224,6 +230,7 @@ class BasicStrategicAgent(AbstractStrategicAgent):
                     actions: list[Player]):
         '''Choose which opponent to give a resource to.
         Pick the opponent with the lowest `public score`'''
+        # return np.random.randint(0,len(actions))
         oppScores = [strategy_utils.playerPublicScore(player) for player in actions]
         return np.argmin(oppScores)
     
@@ -282,3 +289,15 @@ def main():
     player = Player('david', Agent(), 4, ('Arcana', 'Skullduggery'))
     agent = BasicStrategicAgent()
     agent.chooseQuest(None, player, quests)
+
+class AntiStrategicAgent(BasicStrategicAgent):
+    def act(self, gameState, playerState, actions, score):
+        # return np.random.randint(0,len(actions))
+        badAction = super().act(gameState, playerState, actions, score)
+        if len(actions) == 1:
+            return badAction
+        
+        action = np.random.randint(0,len(actions))
+        while action == badAction:
+            action = np.random.randint(0,len(actions))
+        return action

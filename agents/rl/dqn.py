@@ -90,11 +90,10 @@ class ReplayMemory(object):
         
 
 class DQNAgent(Agent):
-    # Note: Vertical code like this is nice and clean and readable - DW
     def __init__(
         self, 
-        state_dim, 
-        action_dim, 
+        state_dim=featurize.STATE_DIM, 
+        action_dim=featurize.ACTION_DIM, 
         hidden_layer_sizes=[256, 128],
         layernorm='layernorm',
         activation='LeakyReLU',
@@ -105,6 +104,7 @@ class DQNAgent(Agent):
         batch_size=128, 
         discount_factor=1
     ):
+        super().__init__()
 
         # TODO: Package DQN params in a dict that gets passed in after being read from a config
         self.q_net = DeepQNet(
