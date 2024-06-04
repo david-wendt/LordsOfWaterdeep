@@ -52,17 +52,17 @@ class AbstractStrategicAgent(Agent):
         '''
         Strategically choose an action to play. For each possible
         type of action, call a function that handles that case
-        specifically. This wrapper is called for all `StrategicAgent`s,
         which should each override the above functions which are used here.
         
         (The casework here is the same as in featurize.getActionMask,
         with structure of assertions slightly changed but functionally
         the same.)
+        specifically. This wrapper is called for all `StrategicAgent`s,
         '''
         if isinstance(actions[0], Building) or (
             isinstance(actions[0], CustomBuilding) 
                 and actions[0].owner is not None):
-            print("case 1")
+            # print("case 1")
             # Action type: Choose a building in which to place an agent
             for building in actions:
                 if isinstance(building, CustomBuilding):
@@ -72,7 +72,7 @@ class AbstractStrategicAgent(Agent):
             return self.placeAgent(gameState, playerState, actions)
         
         elif isinstance(actions[0], Quest):
-            print("case 2")
+            # print("case 2")
             # Action type: Choose which quest from Cliffwatch to take
             assert len(actions) == NUM_CLIFFWATCH_QUESTS
             for i,quest in enumerate(actions):
@@ -81,7 +81,7 @@ class AbstractStrategicAgent(Agent):
             return self.chooseQuest(gameState, playerState, actions)
 
         elif actions[0] == DO_NOT_COMPLETE_QUEST:
-            print("case 3")
+            # print("case 3")
             # Action type: Choose which active quest to complete, or to not complete any
             for i,action in enumerate(actions):
                 if i != 0: assert isinstance(action, Quest)
@@ -89,7 +89,7 @@ class AbstractStrategicAgent(Agent):
             return self.completeQuest(gameState, playerState, actions)
 
         elif isinstance(actions[0], CustomBuilding) and actions[0].owner is None:
-            print("case 4")
+            # print("case 4")
             # Action type: Choose which building from Builder's Hall to purchase
             # (out of the affordable subset)
             assert len(actions) <= NUM_BUILDERS_HALL
@@ -98,32 +98,32 @@ class AbstractStrategicAgent(Agent):
             return self.purchaseBuilding(gameState, playerState, actions)
 
         elif isinstance(actions[0], FixedResources):
-            print("case 5")
+            # print("case 5")
             # Action type: Choose which of two owner rewards to take as building owner
             assert len(actions) == 2 and isinstance(actions[1], FixedResources)
             return self.chooseReward(gameState, playerState, actions)
 
         elif isinstance(actions[0], str):
-            print("case 6")
+            # print("case 6")
             # Action type: Choose which intrigue card to play
             assert set(actions).issubset(INTRIGUES)
             return self.playIntrigue(gameState, playerState, actions)
 
         elif isinstance(actions[0], Player):
-            print("case 7")
+            # print("case 7")
             # Action type: Choose which opponent to give a resource to
             opponents = utils.getOpponents(gameState.players, playerState)
             assert actions == opponents and len(actions) == gameState.numPlayers - 1
             return self.giveResource(gameState, playerState, actions)
 
         elif isinstance(actions[0], Resources):
-            print("case 8")
+            # print("case 8")
             # Action type: Choose which standard resource bundle to get as a reward for 'Call in a Favor' intrigue card
             assert actions == STANDARD_RESOURCE_BUNDLES
             return self.chooseReward(gameState, playerState, actions)
 
         else:
-            print("case 9")
+            # print("case 9")
             raise ValueError("Unknown action type:", actions)
         
 class BasicStrategicAgent(AbstractStrategicAgent):
@@ -131,21 +131,24 @@ class BasicStrategicAgent(AbstractStrategicAgent):
                    actions: list[Building | CustomBuilding]):
         '''Choose a building in which to place an agent'''
         waterdeepHarbors = utils.getWaterdeepHarbors(actions)
+        nFreeWaterdeepHarbors = len(utils.getUnoccupiedWaterdeepHarbors(game.boardState.buildings))
         # if there is an open spot to play an intrigue card and you have one play it half the time
-        if player.numIntrigues():
-            if len(waterdeepHarbors) == 3 or len(waterdeepHarbors) == 1 and np.random.rand() < 0.5 or np.random.rand() < 0.5:
-                print("case a", actions.index(waterdeepHarbors[0]))
+        if player.numIntrigues() and len(waterdeepHarbors) > 0:
+            if (nFreeWaterdeepHarbors == 1 
+                or (nFreeWaterdeepHarbors == 2 and np.random.rand() < 0.75)
+                or (nFreeWaterdeepHarbors == 3 and np.random.rand() < 0.5)):
+                # print("case a", actions.index(waterdeepHarbors[0]))
                 return actions.index(waterdeepHarbors[0])
         # if you can build a building then do it half the time
-        if BUILDERS_HALL in actions and np.random.rand() < 0.5:
-            print("case b", actions.index(BUILDERS_HALL))
+        if BUILDERS_HALL in actions and np.random.rand() < 0.1:
+            # print("case b", actions.index(BUILDERS_HALL))
             return actions.index(BUILDERS_HALL)
         # otherwise maximize function of resources needed
         resourcesNeeded = strategy_utils.resourcesNeeded(player)
-        print("case c", np.argmax([
-            resourcesNeeded.dot(building.rewards)
-            for building in actions
-        ]))
+        # print("case c", np.argmax([
+        #     resourcesNeeded.dot(building.rewards)
+        #     for building in actions
+        # ]))
         return np.argmax([
             resourcesNeeded.dot(building.rewards)
             for building in actions
@@ -157,21 +160,29 @@ class BasicStrategicAgent(AbstractStrategicAgent):
         Choose the best lord-aligned quest if one is available,
         otherwise the best quest.'''
         quests = strategy_utils.rankQuests(actions, player.lordCard)
-        lordQuests = strategy_utils.lordQuests(quests, player.lordCard)
-        plotQuests = strategy_utils.plotQuests(quests)
-        plotLordQuests = set(lordQuests).intersection(plotQuests)
-        if len(plotLordQuests):
-            return min(plotLordQuests)
-        elif len(lordQuests):
-            return lordQuests[0]
-        elif len(plotQuests):
-            return plotQuests[0]
-        return quests[0]
+        lordQuestIndices = strategy_utils.lordQuests(quests, player.lordCard)
+        plotQuestIndices = strategy_utils.plotQuests(quests)
+        plotLordQuestIndices = set(lordQuestIndices).intersection(plotQuestIndices)
+        if len(plotLordQuestIndices):
+            quests_idx = min(plotLordQuestIndices)
+        elif len(lordQuestIndices):
+            quests_idx = lordQuestIndices[0]
+        elif len(plotQuestIndices):
+            quests_idx = plotQuestIndices[0]
+        else:
+            quests_idx = 0
+        return actions.index(quests[quests_idx])
 
     def completeQuest(self, game: GameState, player: Player, 
                      actions: list[Quest]):
-        '''Choose which active quest to complete, or to not complete any.'''
-        return self.chooseQuest(game, player, actions)
+        '''Choose which active quest to complete, or to not complete any.
+        For now: always complete a quest if you can.'''
+        assert actions[0] == DO_NOT_COMPLETE_QUEST
+        if len(actions) > 2:
+            return self.chooseQuest(game, player, actions[1:])
+        if len(actions) == 2:
+            return 1
+        return 0
     
     def purchaseBuilding(self, game: GameState, player: Player, 
                         actions: list[CustomBuilding]):
@@ -241,6 +252,16 @@ class StrategicAgent(BasicStrategicAgent):
     - maybe avoid placing agents in custom buildings when they are owned by the rival
         (highest-public-score opponent)
     - maybe sometimes choose to get the castle if you are toward the end of turn order
+
+#########################################################################################################
+#########################################################################################################
+    - don't always complete a quest if you want to wait for a better quest. For instance,
+        if you have an active plot quest, don't complete other quests of the type until 
+        you complete that one
+*********************************************************************************************************
+^^^^^^^^ I think this is a fairly important one to implement in this improved version of the agent ^^^^^^
+*********************************************************************************************************
+
     - for scoring a player (see strategy_utils.playerPublicScore), 
         maybe add points per owned building?
         I don't really want to include this in player.score

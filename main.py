@@ -1,18 +1,19 @@
 from game import game
 from agents.baseline.manual_agent import ManualAgent
 from agents.baseline.random_agent import RandomAgent
+from agents.baseline.strategic_agent import BasicStrategicAgent
 from game import quests
 import printing_utils 
 
 def main():
     # agents = [ManualAgent(), RandomAgent()]
-    agents = [RandomAgent(), RandomAgent()]
+    agents = [BasicStrategicAgent(), RandomAgent()]
     wins = []
     ties = []
-    for i in range(10000):
+    for i in range(100):
         # results,actionTypes = game.main(agents)
         results = game.main(agents)
-        if i % 1000 == 0:
+        if i % 10 == 0:
             print(i,results)
             # printing_utils.pprint(actionTypes)
 

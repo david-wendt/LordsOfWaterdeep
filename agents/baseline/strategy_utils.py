@@ -5,6 +5,11 @@ from game.game_info import *
 PLOT_QUEST_VALUE = 4 # Based on breakeven value in spreadsheet https://docs.google.com/spreadsheets/d/1rGbUNVHCKTy-D7s4yezfK91vA1HQFlCmWWY78Ize7xY/edit#gid=0
 
 def evaluateQuest(quest: Quest, lordCard: list[str]):
+    if quest == DO_NOT_COMPLETE_QUEST:
+        return 0
+    
+    assert isinstance(quest, Quest)
+    assert len(lordCard) == 2 and set(lordCard).issubset(QUEST_TYPES)
     return (
         quest.rewards.clerics
         + quest.rewards.wizards
@@ -24,9 +29,17 @@ def evaluateQuest(quest: Quest, lordCard: list[str]):
     )
 
 def rankQuests(quests: list[Quest], lordCard: list[str]):
+    assert len(lordCard) == 2 and set(lordCard).issubset(QUEST_TYPES),lordCard
+    assert isinstance(quests, list)
+    if quests[0] == DO_NOT_COMPLETE_QUEST:
+        assert set(quests[1:]).issubset(QUESTS),quests
+    else:
+        assert set(quests).issubset(QUESTS),quests
+
     return sorted(quests, key=lambda quest: evaluateQuest(quest, lordCard), reverse=True)
 
 def lordQuests(quests: list[Quest], lordCard: list[str]):
+    '''Return indices of lord-aligned quests in `quests`'''
     questTypes = np.array([quest.type for quest in quests])
     lordType1,lordType2 = lordCard
     return np.where(np.logical_or(
@@ -35,6 +48,7 @@ def lordQuests(quests: list[Quest], lordCard: list[str]):
     ))[0]
 
 def plotQuests(quests: list[Quest]):
+    '''Return indices of plot quests in `quests`'''
     return np.where([quest.plot for quest in quests])[0]
 
 def np_topk(arr, k):
@@ -96,13 +110,13 @@ def resourcesNeeded(player: Player):
     resources -= ownedResources
 
     # Proxy for value of a VP/Q/I relative to value of resources needed
+    # 10 is max number of active quests, and proxy for desired number of intrigues 
     scaled_mean = resources.scaled_mean()
     resources.VPs += scaled_mean / SCORE_PER_VP 
-    resources = resources.toFixedResources()
-
-    # 10 is max number of active quests, and proxy for desired number of intrigues 
-    resources.quests += 10 - len(player.activeQuests)
-    resources.intrigues += 10 - player.numIntrigues()
+    resources = resources.toFixedResources(
+        quests = 10 - len(player.activeQuests),
+        intrigues = 10 - player.numIntrigues()
+    )
 
     return resources
 
