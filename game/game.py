@@ -144,6 +144,7 @@ class GameState():
         for _ in range(nQuests):
             # actionTypes["choose a quest from cliffwatch inn"] += 1
             quest_idx = currentPlayer.selectMove(self, self.boardState.availableQuests)
+            assert isinstance(quest_idx, int), quest_idx
             quest = self.boardState.chooseQuest(quest_idx)
             currentPlayer.getQuest(quest)
 

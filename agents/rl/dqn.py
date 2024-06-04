@@ -254,7 +254,7 @@ class DQNAgent(Agent):
         sample = random.random()
         if self.trainMode and sample < self.eps:
             # Random action
-            available_action_idx = torch.randint(0,len(actions),(1,))
+            available_action_idx = torch.randint(0,len(actions),(1,)).item()
             action_idx = torch.tensor(available_action_indices[available_action_idx]).to(DEVICE)
         else:
             # Q argmax action (always take in eval mode)
