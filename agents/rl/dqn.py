@@ -157,7 +157,7 @@ class DQNAgent(Agent):
 
     # started from code from https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html and adjusted
     def optimize_model(self):
-        if not self.trainMode:
+        if not self.trainMode or self.episode % 8 != 0:
             return
         # get BATCH_SIZE
         if len(self.memory) < self.batch_size:
