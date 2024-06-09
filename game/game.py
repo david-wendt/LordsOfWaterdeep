@@ -161,7 +161,9 @@ class GameState():
         if not player.isValidQuestCompletion(quest):
             raise ValueError("Do not have enough resources to complete this quest.")
         
-        player.removeResources(quest.requirements)
+        requirements,reqQuests,reqIntrigues = quest.requirements.toResources()
+        assert reqQuests == reqIntrigues == 0
+        player.removeResources(requirements)
 
         rewards,nQuests,numIntrigues = quest.rewards.toResources()
         player.getResources(rewards)
@@ -390,6 +392,6 @@ class GameState():
     def __repr__(self) -> str:
         return f"ROUNDS LEFT: {self.roundsLeft}\n\nBOARD STATE:\n{self.boardState}\nPLAYERS:" + "".join([f"{player}" for player in self.players])
 
-def main(agents):
-    gs = GameState(agents, numRounds=8)
-    return gs.runGame()#,actionTypes
+# def main(agents):
+#     gs = GameState(agents, numRounds=8)
+#     return gs.runGame()#,actionTypes

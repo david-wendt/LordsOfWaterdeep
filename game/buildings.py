@@ -24,6 +24,8 @@ class Building:
             extra_rewards.append("Castle Waterdeep")
         if self.resetQuests:
             extra_rewards.append("Reset Quests")
+        if self.buyBuilding:
+            extra_rewards.append("Purchase Building")
         extra_rewards = " + ".join(extra_rewards)
         
         if self.rewards:
@@ -56,6 +58,8 @@ DEFAULT_BUILDINGS = [
 ]
 
 BUILDERS_HALL = DEFAULT_BUILDINGS[-1]
+for building in DEFAULT_BUILDINGS:
+    assert ("Waterdeep Harbor" in building.name) == building.playIntrigue == building.reassign
 
 @dataclass(frozen=True)
 class CustomBuilding:

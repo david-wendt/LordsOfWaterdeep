@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt 
 from tqdm import tqdm
 import argparse
 
@@ -18,13 +19,25 @@ def train(agents, n_games):
     for _ in tqdm(range(n_games), desc='Training'):
         game = GameState(agents, numRounds=8)
         game.runGame() 
+
+def train_and_eval(agents, train_ngames, eval_every=200, eval_ngames=100, verbose=False):
+    setTrain(agents)
+    igames = []
+    vp_edges = []
+    for igame in tqdm(range(train_ngames), desc='Training'):
+        game = GameState(agents, numRounds=8)
+        game.runGame() 
+        if igame % eval_every == 0:
+            mean_stats = eval.eval(agents=agents, n_games=eval_ngames, verbose=True)
+            igames.append(igame)
+            vp_edges.append(mean_stats['VP edge'])
+            if verbose:
+                print(igame, mean_stats)
+    return igames, np.array(vp_edges)
     
 def main(args):
     nPlayers = 2
-    deepQAgent = DQNAgent(
-        state_dim=featurize.STATE_DIM, 
-        action_dim=featurize.ACTION_DIM
-    )
+    deepQAgent = DQNAgent()
 
     randomAgent = RandomAgent()
 
@@ -32,8 +45,16 @@ def main(args):
     agents = [deepQAgent, randomAgent]
     assert len(agents) == len(agentTypes) == nPlayers
 
-    train(agents=agents, n_games=args.train_ngames)
+    igames, vp_edges = train_and_eval(agents=agents, train_ngames=args.train_ngames, verbose=True)
+    print(vp_edges.shape)
+    plt.figure()
+    plt.plot(igames, vp_edges[:,0])
+    plt.plot(igames, vp_edges[:,1])
+    plt.show()
+
     mean_stats = eval.eval(agents=agents, n_games=args.eval_ngames, verbose=True)
+    for key,ls in mean_stats.items():
+        mean_stats[key] = [str(round(elt,2)) for elt in ls]
 
     results_fname = f'results/dqn_vs_random_{args.train_ngames}games.txt'
     with open(results_fname, 'w') as f:
