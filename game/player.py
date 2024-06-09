@@ -55,6 +55,7 @@ class Player():
             count = self.intrigues[i]
             if count > 0:
                 res += f"{intrigue} ({count})"
+        return res
 
     def _private_repr(self):
         activeQuests = ""

@@ -131,19 +131,19 @@ class FixedResources:
         res = ""
         if self.VPs > 0:
             res += f"VPs: {self.VPs}, "
-        if self.wizards > 0:
+        if self.wizards != 0:
             res += f"wizards: {self.wizards}, "
-        if self.clerics > 0:
+        if self.clerics != 0:
             res += f"clerics: {self.clerics}, "
-        if self.fighters > 0:
+        if self.fighters != 0:
             res += f"fighters: {self.fighters}, "
-        if self.rogues > 0:
+        if self.rogues != 0:
             res += f"rogues: {self.rogues}, "
-        if self.gold > 0:
+        if self.gold != 0:
             res += f"gold: {self.gold}, "
-        if self.quests > 0:
+        if self.quests != 0:
             res += f"quests: {self.quests}, "
-        if self.intrigues > 0:
+        if self.intrigues != 0:
             res += f"intrigues: {self.intrigues}, "
 
         if res[-2:] == ", ":

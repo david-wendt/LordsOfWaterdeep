@@ -24,6 +24,8 @@ class Building:
             extra_rewards.append("Castle Waterdeep")
         if self.resetQuests:
             extra_rewards.append("Reset Quests")
+        if self.buyBuilding:
+            extra_rewards.append("Purchase Building")
         extra_rewards = " + ".join(extra_rewards)
         
         if self.rewards:
