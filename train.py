@@ -41,35 +41,41 @@ def seed_all(seed):
     random.seed(seed)
 
 def main(args):
-    seed_all(args.seed)
-    nPlayers = 2
+    seeds = [int(seed) for seed in args.seeds.split(',')]
+    dfs = {}
+    for seed in seeds:
+        print('Using seed', seed)
+        seed_all(seed)
+        nPlayers = 2
 
-    q_net = DeepQNet(
-        input_dim=featurize.STATE_DIM,
-        output_dim=featurize.ACTION_DIM,
-        hidden_layer_sizes=[512,256,256,128],
-        layernorm='layernorm',
-        activation='LeakyReLU'
-    )
+        q_net = DeepQNet(
+            input_dim=featurize.STATE_DIM,
+            output_dim=featurize.ACTION_DIM,
+            hidden_layer_sizes=[512,256,256,128],
+            layernorm='layernorm',
+            activation='LeakyReLU'
+        )
 
-    agents = [
-        # DQNAgent(q_net),
-        # DQNAgent(q_net),
-        RandomAgent(),
-        RandomAgent()
-    ]
-    assert len(agents) == nPlayers
+        agents = [
+            # DQNAgent(q_net),
+            # DQNAgent(q_net),
+            RandomAgent(),
+            RandomAgent()
+        ]
+        assert len(agents) == nPlayers
+        agent_types = [agent.agent_type() for agent in agents]
 
-    stats = train_and_eval(agents=agents, train_ngames=args.train_ngames, 
-                                      eval_every=args.eval_every, eval_ngames=args.eval_ngames)
-    
-    final_stats = eval.eval(agents=agents, n_games=args.final_eval_ngames, verbose=True)
-    stats.update({args.train_ngames: pd.DataFrame(final_stats)})
+        stats = train_and_eval(agents=agents, train_ngames=args.train_ngames, 
+                                        eval_every=args.eval_every, eval_ngames=args.eval_ngames)
+        
+        final_stats = eval.eval(agents=agents, n_games=args.final_eval_ngames, verbose=True)
+        stats.update({args.train_ngames: pd.DataFrame(final_stats)})
 
-    df = pd.concat(stats)
-    df.index = df.index.set_names(['train games', 'agent index'])
-    df.reset_index(inplace=True)
-    df.to_csv('results/df.csv')
+        df = pd.concat(stats)
+        df.index = df.index.set_names(['train games', 'agent index'])
+        df.reset_index(inplace=True)
+        dfs[seed] = df
+        df.to_csv(f'results/training/{"-".join(agent_types)}_{args.expname}_seed{seed}.csv')
 
 if __name__ == "__main__":
 
@@ -78,7 +84,8 @@ if __name__ == "__main__":
     parser.add_argument("--eval_ngames", type=int, default=250)
     parser.add_argument("--eval_every", type=int, default=100)
     parser.add_argument("--final_eval_ngames", type=int, default=1500)
-    parser.add_argument("--seed", type=int, default=1224)
+    parser.add_argument("--seeds", type=str, default="1224")
+    parser.add_argument("--expname", type=str, default='default')
     args = parser.parse_args()
     
     main(args)
