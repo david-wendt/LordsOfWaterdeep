@@ -123,8 +123,11 @@ class PolicyAgent(Agent):
         self.updates_per_batch = updates_per_batch
 
     def agent_type(self):
-        return "PolicyAgent"
-
+        if self.use_ppo:
+            return "PPO"
+        else:
+            return "REINFORCE"
+        
     def train(self):
         super().train()
         self.policy_net.train()
