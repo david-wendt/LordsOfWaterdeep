@@ -1,7 +1,10 @@
+# built from policy.py, policy_gradient.py, ppo.py from assignment 2
+
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from agents.rl.baseline_network import BaselineNetwork
 import random
 from collections import namedtuple
 from collections import deque
@@ -26,7 +29,7 @@ class PolicyNet(nn.Module):
     def __init__(self, 
             input_dim, 
             output_dim, 
-            hidden_layer_sizes=[512, 256, 128],
+            hidden_layer_sizes=[256, 128],
             layernorm='layernorm',
             activation='LeakyReLU'
         ):
@@ -72,7 +75,7 @@ class PolicyAgent(Agent):
         layernorm='layernorm',
         activation='LeakyReLU', 
         learning_rate=0.001, 
-        batch_size=2000, 
+        batch_size=5000, 
         discount_factor=1
     ):
 
@@ -105,6 +108,13 @@ class PolicyAgent(Agent):
         self.action_masks = []
         self.log_probs = []
 
+        self.normalize_advantage = False
+        self.use_baseline = True
+        self.baseline_network = BaselineNetwork(state_dim)
+        self.eps_clip = 0.2
+        self.use_ppo = True
+        self.updates_per_batch = 5
+
     def train(self):
         super().train()
         self.policy_net.train()
@@ -114,7 +124,7 @@ class PolicyAgent(Agent):
         self.policy_net.eval()
 
     def end_game(self, score):
-        reward = score - self.prev_score - 1
+        reward = score - self.prev_score - 1.1
         self.rewards.append(reward)
         self.prev_state = None
         self.prev_action = None
@@ -125,7 +135,7 @@ class PolicyAgent(Agent):
                 "reward": np.array(self.rewards),
                 "action": np.array(self.actions),
                 "action_mask" : np.array(self.action_masks),
-                "log_prob" : np.array(self.log_probs)
+                "log_probs" : np.array(self.log_probs)
             }
 
             self.paths.append(path)
@@ -169,7 +179,7 @@ class PolicyAgent(Agent):
         self.action_masks.append(action_mask)
         
         if self.prev_state is not None:
-            reward = score - self.prev_score - 1
+            reward = score - self.prev_score - 1.1
             self.rewards.append(reward)
             self.episode_reward += reward
                 
@@ -229,9 +239,17 @@ class PolicyAgent(Agent):
         Returns:
             advantages: np.array of shape [batch size]
         """
-        # for now no normalize or baseline
-        # baseline could use a Q-net or could assume e.g. 2 points per term
-        return returns
+        if self.use_baseline:
+            advantages = self.baseline_network.calculate_advantage(
+                returns, observations
+            )
+        else:
+            advantages = returns
+
+        if self.normalize_advantage:
+           advantages = (advantages - np.mean(advantages)) / np.std(advantages)
+
+        return advantages
 
     def update_policy(self):
         """
@@ -259,34 +277,35 @@ class PolicyAgent(Agent):
         rewards = np.concatenate([path["reward"] for path in self.paths])
         returns = self.get_returns()
         action_masks = np.concatenate([path["action_mask"] for path in self.paths])
+        old_logprobs = np.concatenate([path["log_probs"] for path in self.paths])
 
-        advantages = returns
-        # print("advantages", advantages)
+        advantages = self.calculate_advantage(returns, observations)
 
         observations = np2torch(observations)
         actions = np2torch(actions)
         advantages = np2torch(advantages)
         action_masks = np2torch(action_masks)
+        old_logprobs = np2torch(old_logprobs)
 
-        # involve action_mask
-        logits = self.policy_net(observations) + 1e10 * (action_masks - 1)
-        probabilities = torch.softmax(logits, dim=-1)
-        distribution = torch.distributions.Categorical(probabilities)
-        # log probabilities of the actions given the observations (should change to weight allopwable actions)
-        log_probs = distribution.log_prob(actions)
-        # log_probs = np2torch(np.concatenate([path["log_prob"] for path in self.paths]))
+        for _ in range(self.updates_per_batch):
+            logits = self.policy_net(observations) + 1e10 * (action_masks - 1)
+            probabilities = torch.softmax(logits, dim=-1)
+            distribution = torch.distributions.Categorical(probabilities)
+            log_probs = distribution.log_prob(actions)
 
+            if self.use_ppo:
+                ratio = torch.exp(log_probs - old_logprobs)
+                print(ratio)
+                clipped_ratio = torch.clamp(ratio, 1.0 - self.eps_clip, 1.0 + self.eps_clip)
+                loss = -torch.mean(torch.min(ratio * advantages, clipped_ratio * advantages))
+                print(loss)
+            else:
+                loss = -torch.mean(log_probs * advantages)
+                print(loss)
 
-        # print(log_probs)
-        # print(advantages)
-
-        # negative because we will minimize loss
-        loss = -torch.mean(log_probs * advantages)
-        print(loss)
-
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step() 
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step() 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
