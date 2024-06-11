@@ -54,7 +54,7 @@ class DQNAgent(Agent):
         eps_start=0.5, 
         eps_decay=0.99, 
         learning_rate=0.001, 
-        replay_capacity=1000, 
+        replay_capacity=5000, 
         batch_size=128, 
         discount_factor=1
     ):
