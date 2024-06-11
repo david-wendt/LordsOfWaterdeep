@@ -6,7 +6,8 @@ from tqdm import tqdm
 import argparse
 
 from agents.agent import Agent
-from agents.rl.dqn_agent import DeepQNet, DQNAgent
+from agents.rl.dqn_agent import DQNAgent
+from agents.rl.dqnet import DeepQNet
 from agents.baseline.random_agent import RandomAgent
 from game.game import GameState
 from features import featurize
@@ -28,8 +29,8 @@ def train_and_eval(agents, train_ngames, eval_every=200, eval_ngames=100):
     for igame in tqdm(range(train_ngames), desc='Training'):
         game = GameState(agents, numRounds=8)
         game.runGame() 
-        if igame % eval_every == 0 or igame:
-            game_stats[igame] = eval.eval(agents=agents, n_games=eval_ngames, verbose=True)
+        if igame % eval_every == 0:
+            game_stats[igame] = eval.eval(agents=agents, n_games=eval_ngames, verbose=False)
     return game_stats
     
 def seed_all(seed):
@@ -57,19 +58,16 @@ def main(args):
     ]
     assert len(agents) == nPlayers
 
-    igames, vp_edges = train_and_eval(agents=agents, train_ngames=args.train_ngames, 
+    stats = train_and_eval(agents=agents, train_ngames=args.train_ngames, 
                                       eval_every=args.eval_every, eval_ngames=args.eval_ngames)
-    print(vp_edges.shape)
-    plt.figure()
-    plt.plot(igames, vp_edges[:,0])
-    plt.plot(igames, vp_edges[:,1])
-    plt.show()
+    # print(game_stats)
+    # plt.figure()
+    # plt.plot(igames, vp_edges[:,0])
+    # plt.plot(igames, vp_edges[:,1])
+    # plt.show()
 
-    final_game_stats = eval.eval(agents=agents, n_games=args.final_eval_ngames, verbose=True)
-    print(final_game_stats)
-    for agent in agents:
-        print(agent.agent_type())
-        print(agent.)
+    final_stats = eval.eval(agents=agents, n_games=args.final_eval_ngames, verbose=True)
+    print(final_stats)
     # for key,ls in mean_stats.items():
     #     mean_stats[key] = [str(round(elt,2)) for elt in ls]
 

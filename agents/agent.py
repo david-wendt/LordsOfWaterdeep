@@ -4,6 +4,10 @@ from game.intrigues import INTRIGUES
 
 class Agent():
     def __init__(self) -> None:
+        self.trainMode = False
+        self.resetAgentStats()
+
+    def resetAgentStats(self):
         self.plotQuestsTaken = 0
         self.plotQuestsCompleted = 0
         self.lordQuestsTaken = 0
@@ -12,24 +16,28 @@ class Agent():
         self.questsCompleted = 0
         self.buildingsPurchased = 0
         self.intrigueCardsPlayed = 0 
-        self.trainMode = False
+        self.evalGamesPlayed = 0
 
+    def agent_type(self):
+        raise NotImplementedError("Implement in subclass")
+    
     def train(self):
         self.trainMode = True
     
     def eval(self):
         self.trainMode = False 
+        self.resetAgentStats()
         
-    def getStats(self, ngames):
+    def getStats(self):
         return {
             'Plot Quests Taken Frac': self.plotQuestsTaken / self.questsTaken,
             'Plot Quests Completed Frac': self.plotQuestsCompleted / self.questsCompleted,
             'Lord Quests Taken Frac': self.lordQuestsTaken / self.questsTaken,
             'Lord Quests Completed Frac': self.lordQuestsCompleted / self.questsCompleted,
-            'Buildings Purchased per Game': self.buildingsPurchased / ngames,
-            'Intrigue Cards Played per Game': self.intrigueCardsPlayed / ngames,
-            'Quests Taken per Game': self.questsTaken / ngames,
-            'Quests Completed per Game': self.questsCompleted / ngames
+            'Buildings Purchased per Game': self.buildingsPurchased / self.evalGamesPlayed,
+            'Intrigue Cards Played per Game': self.intrigueCardsPlayed / self.evalGamesPlayed,
+            'Quests Taken per Game': self.questsTaken / self.evalGamesPlayed,
+            'Quests Completed per Game': self.questsCompleted / self.evalGamesPlayed
         }
     
     def isLordQuest(self, quest, player):
@@ -89,5 +97,10 @@ class Agent():
         ''' Override this in subclasses'''
         raise NotImplementedError
     
+    def endGameWrapper(self, score):
+        if not self.trainMode:
+            self.evalGamesPlayed += 1
+        return self.end_game(score)
+    
     def end_game(self, score):
-        return
+        pass 

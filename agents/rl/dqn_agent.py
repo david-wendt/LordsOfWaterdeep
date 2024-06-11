@@ -156,10 +156,12 @@ class DQNAgent(Agent):
         self.optimizer.step()
 
     def end_game(self, score):
-        reward = torch.tensor([score - self.prev_score], dtype=torch.float32).to(DEVICE)
-        self.memory.push(self.prev_state, self.prev_action, None, reward, torch.zeros(self.action_dim))
-        self.optimize_model()
+        if self.trainMode:
+            reward = torch.tensor([score - self.prev_score], dtype=torch.float32).to(DEVICE)
+            self.memory.push(self.prev_state, self.prev_action, None, reward, torch.zeros(self.action_dim))
+            self.optimize_model()
         
+        self.prev_score = 0.0
         self.prev_state = None
         self.prev_action = None
     
@@ -174,19 +176,19 @@ class DQNAgent(Agent):
         action_mask = action_mask.to(DEVICE)
         assert action_mask.sum() == len(actions)
 
-        if self.prev_state is not None:
-            reward = torch.tensor([score - self.prev_score], dtype=torch.float32).to(DEVICE)
-            self.memory.push(self.prev_state, self.prev_action, state_tensor, reward, action_mask)
-            self.optimize_model()
-
-        self.prev_state = state_tensor
-        self.prev_score = score
-
-        self.episode += 1
-        if self.episode % self.target_reset_freq == 0:
-            self.update_target()
-
         if self.trainMode:
+            if self.prev_state is not None:
+                reward = torch.tensor([score - self.prev_score], dtype=torch.float32).to(DEVICE)
+                self.memory.push(self.prev_state, self.prev_action, state_tensor, reward, action_mask)
+                self.optimize_model()
+
+            self.prev_state = state_tensor
+            self.prev_score = score
+
+            self.episode += 1
+            if self.episode % self.target_reset_freq == 0:
+                self.update_target()
+
             # call featurize (state, list of actions)
             # gives features, binary encoding of available actions
             # self.eps = self.eps * math.exp(-1. / self.eps_decay) # Old version

@@ -243,5 +243,5 @@ class Player():
         self.clear()
 
         finalScore = self.resources.VPs * SCORE_PER_VP
-        self.agent.end_game(finalScore)
+        self.agent.endGameWrapper(finalScore)
         return score

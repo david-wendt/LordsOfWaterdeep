@@ -30,14 +30,6 @@ def appendStats(stats, VPs, n_agents):
         else:
             stats['wins'][iagent].append(False) 
 
-def getAgentStats(agents: list[Agent], n_games: int):
-    stats = defaultdict(list)
-    for agent in agents:
-        agent_stats = agent.getStats()
-        for key,stat in agent_stats.items():
-            stats[key].append(stat / n_games)
-    return stats
-
 def eval(agents: list[Agent], n_games: int = 100, verbose=False):
     setEval(agents)
 
@@ -57,14 +49,16 @@ def eval(agents: list[Agent], n_games: int = 100, verbose=False):
         appendStats(stats, VPs, n_agents)
     
     mean_stats = [
-        {
+        dict({
+            'agent type': agent.agent_type(),
             'win rate': np.mean(stats['wins'][iagent]),
             'mean VPs': np.mean(stats['VPs'][iagent]),
             'std VPs': np.std(stats['VPs'][iagent]),
             'mean winner VPs': np.mean(stats['winner VPs'][iagent]),
-            'std winner VPs': np.std(stats['winner VPs'][iagent])
-        }
-        for iagent in range(len(agents))
+            'std winner VPs': np.std(stats['winner VPs'][iagent]),
+        }, **agent.getStats(),
+        )
+        for iagent,agent in enumerate(agents)
     ]
 
     return mean_stats
