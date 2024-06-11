@@ -50,7 +50,7 @@ class DQNAgent(Agent):
     def __init__(
         self, 
         q_net,
-        action_dim=featurize.ACTION_DIM, 
+        action_dim, 
         eps_start=0.5, 
         eps_decay=0.99, 
         learning_rate=0.001, 

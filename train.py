@@ -63,11 +63,11 @@ def main(args):
         )
 
         agents = [
-            PolicyAgent(
-                state_dim=state_dim,
-                action_dim=action_dim
-            ),
-            # DQNAgent(q_net),
+            # PolicyAgent(
+            #     state_dim=state_dim,
+            #     action_dim=action_dim
+            # ),
+            DQNAgent(q_net, action_dim),
             # DQNAgent(q_net),
             RandomAgent(),
             RandomAgent(),
