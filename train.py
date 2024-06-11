@@ -68,6 +68,8 @@ def main(args):
                 state_dim=state_dim,
                 action_dim=action_dim
             ),
+            # DQNAgent(q_net),
+            # DQNAgent(q_net),
             RandomAgent(),
             RandomAgent(),
             RandomAgent()

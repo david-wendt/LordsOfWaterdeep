@@ -15,18 +15,15 @@ N_MAX_ACTIVE_QUESTS = 10
 
 N_MAX_CUSTOM_BUILDINGS = 8
 
-STATE_DIM = 1224 # Hardcoded for train.py
-ACTION_DIM = 59
+STATE_DIM = {
+    2: 766,
+    4: 1224
+}
 
-# ACTION_DIM = {
-#     2: 57,
-#     4: 59
-# }
-
-# STATE_DIM = {
-#     2: 766,
-#     4: 1224
-# }
+ACTION_DIM = {
+    2: 57,
+    4: 59
+}
 
 def featurizeResources(
         resources: Resources | FixedResources,
