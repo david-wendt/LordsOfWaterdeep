@@ -31,7 +31,6 @@ def train_and_eval(agents, train_ngames, eval_every=200, eval_ngames=100):
     for igame in tqdm(range(train_ngames), desc='Training'): 
         if igame % eval_every == 0:
             stat = eval.eval(agents=agents, n_games=eval_ngames, verbose=True)
-            print(stat)
             stats[igame] = pd.DataFrame(stat)
         game = GameState(agents, numRounds=8)
         game.runGame()
@@ -52,8 +51,8 @@ def main(args):
         seed_all(seed)
         nPlayers = 4
 
-        state_dim = featurize.STATE_DIM
-        action_dim = featurize.ACTION_DIM
+        state_dim = featurize.STATE_DIM[nPlayers]
+        action_dim = featurize.ACTION_DIM[nPlayers]
    
         q_net = DeepQNet(
             input_dim=state_dim,
@@ -93,8 +92,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--train_ngames", type=int, default=3000)
-    parser.add_argument("--eval_ngames", type=int, default=250)
-    parser.add_argument("--eval_every", type=int, default=100)
+    parser.add_argument("--eval_ngames", type=int, default=100)
+    parser.add_argument("--eval_every", type=int, default=300)
     parser.add_argument("--final_eval_ngames", type=int, default=1500)
     parser.add_argument("--seeds", type=str, default="1224")
     parser.add_argument("--expname", type=str, default='default')

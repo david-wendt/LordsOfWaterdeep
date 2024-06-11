@@ -305,13 +305,13 @@ class PolicyAgent(Agent):
 
             if self.use_ppo:
                 ratio = torch.exp(log_probs - old_logprobs)
-                print(ratio)
+                # print(ratio)
                 clipped_ratio = torch.clamp(ratio, 1.0 - self.eps_clip, 1.0 + self.eps_clip)
                 loss = -torch.mean(torch.min(ratio * advantages, clipped_ratio * advantages))
-                print(loss)
+                # print(loss)
             else:
                 loss = -torch.mean(log_probs * advantages)
-                print(loss)
+                # print(loss)
 
             self.optimizer.zero_grad()
             loss.backward()
