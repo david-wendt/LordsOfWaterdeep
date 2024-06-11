@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from agents.rl.baseline_network import BaselineNetwork
 import random
 from collections import namedtuple
 from collections import deque
@@ -68,7 +69,7 @@ class PolicyAgent(Agent):
         self, 
         state_dim, 
         action_dim, 
-        hidden_layer_sizes=[256, 128],
+        hidden_layer_sizes=[512, 512, 256, 128],
         layernorm='layernorm',
         activation='LeakyReLU', 
         learning_rate=0.001, 
@@ -105,6 +106,10 @@ class PolicyAgent(Agent):
         self.action_masks = []
         self.log_probs = []
 
+        self.normalize_advantage = False
+        self.use_baseline = True
+        self.baseline_network = BaselineNetwork(state_dim)
+
     def train(self):
         super().train()
         self.policy_net.train()
@@ -114,7 +119,7 @@ class PolicyAgent(Agent):
         self.policy_net.eval()
 
     def end_game(self, score):
-        reward = score - self.prev_score - 1
+        reward = score - self.prev_score
         self.rewards.append(reward)
         self.prev_state = None
         self.prev_action = None
@@ -169,7 +174,7 @@ class PolicyAgent(Agent):
         self.action_masks.append(action_mask)
         
         if self.prev_state is not None:
-            reward = score - self.prev_score - 1
+            reward = score - self.prev_score
             self.rewards.append(reward)
             self.episode_reward += reward
                 
@@ -229,9 +234,18 @@ class PolicyAgent(Agent):
         Returns:
             advantages: np.array of shape [batch size]
         """
-        # for now no normalize or baseline
-        # baseline could use a Q-net or could assume e.g. 2 points per term
-        return returns
+        if self.use_baseline:
+            # override the behavior of advantage by subtracting baseline
+            advantages = self.baseline_network.calculate_advantage(
+                returns, observations
+            )
+        else:
+            advantages = returns
+
+        if self.normalize_advantage:
+           advantages = (advantages - np.mean(advantages)) / np.std(advantages)
+
+        return advantages
 
     def update_policy(self):
         """
@@ -260,7 +274,7 @@ class PolicyAgent(Agent):
         returns = self.get_returns()
         action_masks = np.concatenate([path["action_mask"] for path in self.paths])
 
-        advantages = returns
+        advantages = self.calculate_advantage(returns, observations)
         # print("advantages", advantages)
 
         observations = np2torch(observations)
@@ -282,7 +296,7 @@ class PolicyAgent(Agent):
 
         # negative because we will minimize loss
         loss = -torch.mean(log_probs * advantages)
-        print(loss)
+        # print(loss)
 
         self.optimizer.zero_grad()
         loss.backward()
