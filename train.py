@@ -9,6 +9,7 @@ import argparse
 from agents.agent import Agent
 from agents.rl.dqn_agent import DQNAgent
 from agents.rl.dqnet import DeepQNet
+from agents.rl.policy_agent import PolicyAgent
 from agents.baseline.random_agent import RandomAgent
 from game.game import GameState
 from features import featurize
@@ -27,11 +28,14 @@ def train(agents, n_games):
 def train_and_eval(agents, train_ngames, eval_every=200, eval_ngames=100):
     setTrain(agents)
     stats = dict()
-    for igame in tqdm(range(train_ngames), desc='Training'):
-        game = GameState(agents, numRounds=8)
-        game.runGame() 
+    for igame in tqdm(range(train_ngames), desc='Training'): 
         if igame % eval_every == 0:
-            stats[igame] = pd.DataFrame(eval.eval(agents=agents, n_games=eval_ngames, verbose=False))
+            stat = eval.eval(agents=agents, n_games=eval_ngames, verbose=True)
+            print(stat)
+            stats[igame] = pd.DataFrame(stat)
+        game = GameState(agents, numRounds=8)
+        game.runGame()
+        setTrain(agents)
 
     return stats
     
@@ -46,19 +50,25 @@ def main(args):
     for seed in seeds:
         print('Using seed', seed)
         seed_all(seed)
-        nPlayers = 2
+        nPlayers = 4
 
+        state_dim = featurize.STATE_DIM
+        action_dim = featurize.ACTION_DIM
+   
         q_net = DeepQNet(
-            input_dim=featurize.STATE_DIM[nPlayers],
-            output_dim=featurize.ACTION_DIM[nPlayers],
+            input_dim=state_dim,
+            output_dim=action_dim,
             hidden_layer_sizes=[512,256,256,128],
             layernorm='layernorm',
             activation='LeakyReLU'
         )
 
         agents = [
-            # DQNAgent(q_net),
-            # DQNAgent(q_net),
+            PolicyAgent(
+                state_dim=state_dim,
+                action_dim=action_dim
+            ),
+            RandomAgent(),
             RandomAgent(),
             RandomAgent()
         ]
@@ -80,7 +90,7 @@ def main(args):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--train_ngames", type=int, default=2500)
+    parser.add_argument("--train_ngames", type=int, default=3000)
     parser.add_argument("--eval_ngames", type=int, default=250)
     parser.add_argument("--eval_every", type=int, default=100)
     parser.add_argument("--final_eval_ngames", type=int, default=1500)

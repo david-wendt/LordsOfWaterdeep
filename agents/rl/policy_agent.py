@@ -29,7 +29,7 @@ class PolicyNet(nn.Module):
     def __init__(self, 
             input_dim, 
             output_dim, 
-            hidden_layer_sizes=[256, 128],
+            hidden_layer_sizes=[512, 256, 256, 128],
             layernorm='layernorm',
             activation='LeakyReLU'
         ):
@@ -71,11 +71,11 @@ class PolicyAgent(Agent):
         self, 
         state_dim, 
         action_dim, 
-        hidden_layer_sizes=[256, 128],
+        hidden_layer_sizes=[512, 256, 256, 128],
         layernorm='layernorm',
         activation='LeakyReLU', 
         learning_rate=0.001, 
-        batch_size=5000, 
+        batch_size=2000, 
         discount_factor=1,
 
         normalize_advantage=False,

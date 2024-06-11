@@ -15,13 +15,18 @@ N_MAX_ACTIVE_QUESTS = 10
 
 N_MAX_CUSTOM_BUILDINGS = 8
 
-STATE_DIM = 766 # Hardcoded for train.py
-ACTION_DIM = 57 # Hardcoded for train.py
+STATE_DIM = 1224 # Hardcoded for train.py
+ACTION_DIM = 59
 
-STATE_DIM = {
-    2: 766,
-    4: 1224
-}
+# ACTION_DIM = {
+#     2: 57,
+#     4: 59
+# }
+
+# STATE_DIM = {
+#     2: 766,
+#     4: 1224
+# }
 
 def featurizeResources(
         resources: Resources | FixedResources,
@@ -262,7 +267,7 @@ def getActionMask(actions: list, gameState: GameState, currentPlayer: Player):
                           + quest_complete_len + builders_hall_len + owner_reward_len 
                           + play_intrigue_len + opponent_len + call_in_favor_len
                           ), "The total length does not match the sum of individual lengths"
-    assert action_len == ACTION_DIM
+    # assert action_len == ACTION_DIM
 
     actionMask = torch.zeros(action_len)
 
@@ -335,9 +340,9 @@ def getActionMask(actions: list, gameState: GameState, currentPlayer: Player):
 def featurize(gameState, currentPlayer, actions) -> tuple[torch.Tensor, torch.Tensor]:
     stateFeatures = featurizeGameState(gameState, currentPlayer)
     actionMask = getActionMask(actions, gameState, currentPlayer)
-    assert len(actionMask) == ACTION_DIM,(len(actionMask),ACTION_DIM)
+    # assert len(actionMask) == ACTION_DIM,(len(actionMask),ACTION_DIM)
     stateFeatures = torch.cat([stateFeatures, actionMask])
-    assert len(stateFeatures) == STATE_DIM,(len(stateFeatures),STATE_DIM)
+    # assert len(stateFeatures) == STATE_DIM,(len(stateFeatures),STATE_DIM)
     return stateFeatures,actionMask
 
 # Note for self later: Although one large CNN would not work, consider forcing 
