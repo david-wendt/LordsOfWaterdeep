@@ -86,7 +86,7 @@ def main(args):
         df.index = df.index.set_names(['train games', 'agent index'])
         df.reset_index(inplace=True)
         dfs[seed] = df
-        df.to_csv(f'results/training/{"-".join(agent_types)}_{args.expname}_seed{seed}.csv')
+        df.to_csv(f'results/training/{"-".join(agent_types)}_{args.expname}_{args.train_ngames}games_seed{seed}.csv')
 
 if __name__ == "__main__":
 

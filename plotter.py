@@ -35,10 +35,8 @@ def plot_vps_across_training_games(df, agent_types):
     plt.grid(True)
 
     agents_str = "-".join(agent_types)
-    save_path = os.path.join('plots', f'{agents_str}_VPs.png')
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    save_path = os.path.join('results/plots', f'{agents_str}_VPs.png')
     plt.savefig(save_path)
-    plt.show()
 
 def plot_plot_quests_across_training_games(df, agent_types):
     """
@@ -95,11 +93,10 @@ def plot_quest_completion(df, agent_types):
     plt.title('Completion frac')
     plt.legend()
     plt.grid(True)
-    plt.show()
+    # plt.show()
 
     agents_str = "-".join(agent_types)
-    save_path = os.path.join('plots', f'{agents_str}_completion.png')
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    save_path = os.path.join('results/plots', f'{agents_str}_completion.png')
     plt.savefig(save_path)
     
 
@@ -133,7 +130,11 @@ def plot_metric_across_training_games(df, agent_types, metric):
     plt.title(f'{metric} across Training Games')
     plt.legend()
     plt.grid(True)
-    plt.show()
+    
+
+    agents_str = "-".join(agent_types)
+    save_path = os.path.join('results/plots', f'{agents_str}_{metric}.png')
+    plt.savefig(save_path)
 
 
 
@@ -149,3 +150,5 @@ if __name__ == "__main__":
     plot_quest_completion(df, agent_types)
 
     plot_metric_across_training_games(df, agent_types, 'Buildings Purchased per Game')
+
+    plot_metric_across_training_games(df, agent_types, 'win rate')
