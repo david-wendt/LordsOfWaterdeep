@@ -113,6 +113,7 @@ class PolicyAgent(Agent):
         self.baseline_network = BaselineNetwork(state_dim)
         self.eps_clip = 0.2
         self.use_ppo = True
+        self.updates_per_batch = 5
 
     def train(self):
         super().train()
@@ -286,7 +287,7 @@ class PolicyAgent(Agent):
         action_masks = np2torch(action_masks)
         old_logprobs = np2torch(old_logprobs)
 
-        for _ in range(5):
+        for _ in range(self.updates_per_batch):
             logits = self.policy_net(observations) + 1e10 * (action_masks - 1)
             probabilities = torch.softmax(logits, dim=-1)
             distribution = torch.distributions.Categorical(probabilities)
