@@ -319,6 +319,8 @@ class PolicyAgent(Agent):
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step() 
+            if not self.use_ppo:
+                break
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
