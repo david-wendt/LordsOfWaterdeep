@@ -18,6 +18,11 @@ N_MAX_CUSTOM_BUILDINGS = 8
 STATE_DIM = 766 # Hardcoded for train.py
 ACTION_DIM = 57 # Hardcoded for train.py
 
+STATE_DIM = {
+    2: 766,
+    4: 1224
+}
+
 def featurizeResources(
         resources: Resources | FixedResources,
         includeVP: bool = False,

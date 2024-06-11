@@ -49,8 +49,8 @@ def main(args):
         nPlayers = 2
 
         q_net = DeepQNet(
-            input_dim=featurize.STATE_DIM,
-            output_dim=featurize.ACTION_DIM,
+            input_dim=featurize.STATE_DIM[nPlayers],
+            output_dim=featurize.ACTION_DIM[nPlayers],
             hidden_layer_sizes=[512,256,256,128],
             layernorm='layernorm',
             activation='LeakyReLU'
