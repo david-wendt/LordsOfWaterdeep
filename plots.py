@@ -29,17 +29,17 @@ def main(args):
     agents1 = [deepQAgent, randomAgent]
     agents2 = [policyAgent, randomAgent]
 
-    eval_results = []
+    # eval_results = []
     eval_results_2 = []
-    for iteration in range(35):
-        mean_stats = eval.eval(agents=agents1, n_games=args.eval_ngames, verbose=True)
-        eval_results.append(mean_stats)
+    for iteration in range(40):
+    #    mean_stats = eval.eval(agents=agents1, n_games=args.eval_ngames, verbose=True)
+    #    eval_results.append(mean_stats)
         mean_stats_2 = eval.eval(agents=agents2, n_games=args.eval_ngames, verbose=True)
         eval_results_2.append(mean_stats_2)
-        train(agents=agents1, n_games=100)
+    #    train(agents=agents1, n_games=100)
         train(agents=agents2, n_games=100)
-    mean_stats = eval.eval(agents=agents1, n_games=args.eval_ngames, verbose=True)
-    eval_results.append(mean_stats)
+    #mean_stats = eval.eval(agents=agents1, n_games=args.eval_ngames, verbose=True)
+    #eval_results.append(mean_stats)
     mean_stats_2 = eval.eval(agents=agents2, n_games=args.eval_ngames, verbose=True)
     eval_results_2.append(mean_stats_2)
 
@@ -74,7 +74,7 @@ def main(args):
                 data['score_edge'].append(float(stats[3]))
                 data['VP_edge'].append(float(stats[4]))
     df = pd.DataFrame(data)
-    df.to_csv('evaluation_results.csv', index=False)
+    df.to_csv('evaluation_results_larger_replay18.csv', index=False)
 
     sns.set(style="whitegrid")
 

@@ -1,7 +1,8 @@
+# built from file of same name from assignment 2
+
 import numpy as np
 import torch
 import torch.nn as nn
-from network_utils import build_mlp, device, np2torch
 
 
 class BaselineNetwork(nn.Module):
@@ -9,22 +10,21 @@ class BaselineNetwork(nn.Module):
     Class for implementing Baseline network
     """
 
-    def __init__(self, env, config):
+    def __init__(self, state_dim):
         """
         Creates self.network creates self.optimizer to
         optimize its parameters.
         """
         super().__init__()
-        self.config = config
-        self.env = env
         self.baseline = None
-        self.lr = self.config.learning_rate
-        observation_dim = self.env.observation_space.shape[0]
+        self.lr = 0.001
+        observation_dim = state_dim
 
-        # TODO - output dimension
-        self.network = build_mlp(observation_dim, 1, self.config.n_layers, self.config.hidden_layer_size)
-        self.optimizer = torch.optim.Adam(self.network.parameters(), lr=self.lr)
-
+        layers = [nn.Linear(observation_dim, 256), nn.ReLU()]
+        layers.extend([nn.Linear(256, 128), nn.ReLU()])
+        layers.append(nn.Linear(128, 1))
+        self.network = nn.Sequential(*layers)
+        
     def forward(self, observations):
         """
         Args:
@@ -34,7 +34,6 @@ class BaselineNetwork(nn.Module):
         """
         output = self.network(observations).squeeze(dim=1)
 
-        # TODO - check this line if output should be different
         assert output.ndim == 1
         return output
 
@@ -73,3 +72,17 @@ class BaselineNetwork(nn.Module):
     
         # step self.optimizer once
         self.optimizer.step()
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+def np2torch(x, cast_double_to_float=True):
+    """
+    Utility function that accepts a numpy array and does the following:
+        1. Convert to torch tensor
+        2. Move it to the GPU (if CUDA is available)
+        3. Optionally casts float64 to float32 (torch is picky about types)
+    """
+    x = torch.from_numpy(x).to(device)
+    if cast_double_to_float and x.dtype is torch.float64:
+        x = x.float()
+    return x

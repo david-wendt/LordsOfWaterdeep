@@ -31,10 +31,10 @@ def main(args):
 
     eval_results = []
     eval_results_2 = []
-    for iteration in range(2):
+    for iteration in range(30):
         mean_stats = eval.eval(agents=agents, n_games=args.eval_ngames, verbose=True)
         eval_results.append(mean_stats)
-        train(agents=agents, n_games=5)
+        train(agents=agents, n_games=100)
     mean_stats = eval.eval(agents=agents, n_games=args.eval_ngames, verbose=True)
     eval_results.append(mean_stats)
 
