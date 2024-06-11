@@ -11,39 +11,20 @@ def setEval(agents: list[Agent]):
 
 STATS = [
     'wins', # True if won, False if lost
-    'scores', # Final score at the end of the game
     'VPs', # Final number of VPs at the end of the game
-    'score edge', # Difference between best player and you 
-    'VP edge',    # (or you and second best, if you won)
+    'winner VPs' # VPs if you were the winner
 ]
 
-def appendStats(stats, scores, VPs, n_agents):
+def appendStats(stats, VPs, n_agents):
     # Collect stats
     for iagent in range(n_agents):
-        stats['scores'][iagent].append(scores[iagent])
         stats['VPs'][iagent].append(VPs[iagent])
         
         if iagent == np.argmax(VPs):
             stats['wins'][iagent].append(True)
-            stats['scores'][iagent].append(scores[iagent])
-            stats['VPs'][iagent].append(VPs[iagent])
-
-            otherVPs = VPs.copy()
-            otherVPs.pop(iagent)
-            stats['VP edge'][iagent].append(VPs[iagent] - np.max(otherVPs))
+            stats['winner VPs'][iagent].append(VPs[iagent])
         else:
             stats['wins'][iagent].append(False) 
-            stats['scores'][iagent].append(scores[iagent])
-            stats['VPs'][iagent].append(VPs[iagent])
-            stats['VP edge'][iagent].append(VPs[iagent] - np.max(VPs))
-
-
-        if iagent == np.argmax(scores):
-            otherScores = scores.copy()
-            otherScores.pop(iagent)
-            stats['score edge'][iagent].append(scores[iagent] - np.max(otherScores))
-        else:
-            stats['score edge'][iagent].append(scores[iagent] - np.max(scores))
 
 
 def eval(agents: list[Agent], n_games: int = 100, verbose=False):
@@ -62,13 +43,17 @@ def eval(agents: list[Agent], n_games: int = 100, verbose=False):
         game = GameState(agents, numRounds=8)
         scores,VPs = game.runGame() 
         # print(scores)
-        appendStats(stats, scores, VPs, n_agents)
+        appendStats(stats, VPs, n_agents)
     
-    mean_stats = {
-    statname: [
-            np.mean(stats[statname][iagent]) 
-            for iagent in range(len(agents))
-        ]
-        for statname in STATS
-    }
+    mean_stats = [
+        {
+            'win rate': np.mean(stats['wins'][iagent]),
+            'mean VPs': np.mean(stats['VPs'][iagent]),
+            'std VPs': np.std(stats['VPs'][iagent]),
+            'mean winner VPs': np.mean(stats['winner VPs'][iagent]),
+            'std winner VPs': np.std(stats['winner VPs'][iagent])
+        }
+        for iagent in range(len(agents))
+    ]
+
     return mean_stats

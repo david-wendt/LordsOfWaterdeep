@@ -10,6 +10,7 @@ import random
 from collections import namedtuple
 from collections import deque
 import math
+from copy import deepcopy
 
 from agents.agent import Agent
 from features import featurize
@@ -22,50 +23,6 @@ if USE_GPU:
     elif torch.backends.mps.is_available(): # Run on apple silicon gpu (for M-series MacBooks)
         DEVICE = 'mps'
 
-ACTIVATION_FNS = {
-    'ReLU': nn.ReLU(),
-    'LeakyReLU': nn.LeakyReLU()
-}
-
-class DeepQNet(nn.Module):
-    def __init__(self, 
-            input_dim, 
-            output_dim, 
-            hidden_layer_sizes=[256, 128],
-            layernorm='layernorm',
-            activation='LeakyReLU'
-        ):
-
-        super(DeepQNet, self).__init__()
-
-        print("INITIALIZING DEEP Q NETWORK")
-        print("\tInput size (state dim):", input_dim)
-        print("\tOutput size (action dim):", output_dim)
-        print("\tHidden layer sizes:", hidden_layer_sizes)
-        print() # Newline
-
-        layer_sizes = hidden_layer_sizes + [output_dim]
-        n_layers = len(layer_sizes)
-
-        layers = [nn.Linear(input_dim, hidden_layer_sizes[0])]
-        activation_fn = ACTIVATION_FNS[activation]
-
-        for i in range(n_layers-1):
-            if layernorm == 'layernorm' or layernorm is True:
-                layers.append(nn.LayerNorm(layer_sizes[i]))
-            elif layernorm == 'batchnorm':
-                layers.append(nn.BatchNorm1d(layer_sizes[i]))
-            else:
-                if layernorm is not None:
-                    raise ValueError(f'Unknown layer norm: {layernorm}')
-                
-            layers.append(activation_fn)
-            layers.append(nn.Linear(layer_sizes[i], layer_sizes[i+1]))
-
-        self.mlp = nn.Sequential(*layers)
-
-    def forward(self, x):
-        return self.mlp(x)
 
 
 # https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html
@@ -92,11 +49,8 @@ class ReplayMemory(object):
 class DQNAgent(Agent):
     def __init__(
         self, 
-        state_dim=featurize.STATE_DIM, 
+        q_net,
         action_dim=featurize.ACTION_DIM, 
-        hidden_layer_sizes=[256, 128],
-        layernorm='layernorm',
-        activation='LeakyReLU',
         eps_start=0.5, 
         eps_decay=0.99, 
         learning_rate=0.001, 
@@ -106,22 +60,8 @@ class DQNAgent(Agent):
     ):
         super().__init__()
 
-        # TODO: Package DQN params in a dict that gets passed in after being read from a config
-        self.q_net = DeepQNet(
-            input_dim=state_dim,
-            output_dim=action_dim,
-            hidden_layer_sizes=hidden_layer_sizes,
-            layernorm=layernorm,
-            activation=activation
-        ).to(DEVICE)
-
-        self.target_net = DeepQNet(
-            input_dim=state_dim,
-            output_dim=action_dim,
-            hidden_layer_sizes=hidden_layer_sizes,
-            layernorm=layernorm,
-            activation=activation
-        ).to(DEVICE)
+        self.q_net = q_net.to(DEVICE)
+        self.target_net = deepcopy(q_net).to(DEVICE)
 
         self.update_target()
 
@@ -141,6 +81,9 @@ class DQNAgent(Agent):
         # to know how often to go to target
         self.episode = 0
         self.target_reset_freq = 1000
+
+    def agent_type(self):
+        return "DQNAgent"
 
     def train(self):
         super().train()

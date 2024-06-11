@@ -4,7 +4,7 @@ from game.game import GameState
 from agents.baseline.manual_agent import ManualAgent
 from agents.baseline.random_agent import RandomAgent
 from agents.baseline.strategic_agent import BasicStrategicAgent, AntiStrategicAgent
-from agents.rl.dqn import DQNAgent
+from agents.rl.dqn_agent import DQNAgent
 from game import quests
 import printing_utils 
 import eval

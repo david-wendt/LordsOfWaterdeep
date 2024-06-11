@@ -8,7 +8,7 @@ import numpy as np
 from tqdm import tqdm
 import argparse
 from agents.agent import Agent
-from agents.rl.dqn import DeepQNet, DQNAgent
+from agents.rl.dqn_agent import DeepQNet, DQNAgent
 from agents.rl.policy_agent import PolicyAgent
 from agents.baseline.random_agent import RandomAgent
 from game.game import GameState
