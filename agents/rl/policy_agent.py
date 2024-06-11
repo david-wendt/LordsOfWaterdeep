@@ -76,7 +76,13 @@ class PolicyAgent(Agent):
         activation='LeakyReLU', 
         learning_rate=0.001, 
         batch_size=5000, 
-        discount_factor=1
+        discount_factor=1,
+
+        normalize_advantage=False,
+        use_baseline=True,
+        eps_clip=0.2,
+        use_ppo=True,
+        updates_per_batch=5
     ):
 
         # TODO: Package params in a dict that gets passed in after being read from a config
@@ -108,12 +114,16 @@ class PolicyAgent(Agent):
         self.action_masks = []
         self.log_probs = []
 
-        self.normalize_advantage = False
-        self.use_baseline = True
-        self.baseline_network = BaselineNetwork(state_dim)
-        self.eps_clip = 0.2
-        self.use_ppo = True
-        self.updates_per_batch = 5
+        self.normalize_advantage = normalize_advantage
+        self.use_baseline = use_baseline
+        if self.use_baseline:
+            self.baseline_network = BaselineNetwork(state_dim)
+        self.eps_clip = eps_clip
+        self.use_ppo = use_ppo
+        self.updates_per_batch = updates_per_batch
+
+    def agent_type(self):
+        return "policy_agent"
 
     def train(self):
         super().train()
