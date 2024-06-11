@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import pandas as pd
 import random
 import matplotlib.pyplot as plt 
 from tqdm import tqdm
@@ -25,13 +26,14 @@ def train(agents, n_games):
 
 def train_and_eval(agents, train_ngames, eval_every=200, eval_ngames=100):
     setTrain(agents)
-    game_stats = dict()
+    stats = dict()
     for igame in tqdm(range(train_ngames), desc='Training'):
         game = GameState(agents, numRounds=8)
         game.runGame() 
         if igame % eval_every == 0:
-            game_stats[igame] = eval.eval(agents=agents, n_games=eval_ngames, verbose=False)
-    return game_stats
+            stats[igame] = pd.DataFrame(eval.eval(agents=agents, n_games=eval_ngames, verbose=False))
+
+    return stats
     
 def seed_all(seed):
     torch.manual_seed(seed)
@@ -60,27 +62,14 @@ def main(args):
 
     stats = train_and_eval(agents=agents, train_ngames=args.train_ngames, 
                                       eval_every=args.eval_every, eval_ngames=args.eval_ngames)
-    # print(game_stats)
-    # plt.figure()
-    # plt.plot(igames, vp_edges[:,0])
-    # plt.plot(igames, vp_edges[:,1])
-    # plt.show()
-
+    
     final_stats = eval.eval(agents=agents, n_games=args.final_eval_ngames, verbose=True)
-    print(final_stats)
-    # for key,ls in mean_stats.items():
-    #     mean_stats[key] = [str(round(elt,2)) for elt in ls]
+    stats.update({args.train_ngames: pd.DataFrame(final_stats)})
 
-    # results_fname = f'results/dqn_vs_random_{args.train_ngames}games.txt'
-    # with open(results_fname, 'w') as f:
-    #     f.write("\n".join([
-    #         "Agent types:\t\t" + ",\t".join(agentTypes),
-    #         "Win rate:\t\t\t" + ",\t\t".join(mean_stats['wins']),
-    #         "Mean scores:\t\t" + ",\t\t".join(mean_stats['scores']),
-    #         "Mean VPs:\t\t\t" + ",\t\t".join(mean_stats['VPs']),
-    #         "Mean score edge:\t" + ",\t\t".join(mean_stats['score edge']),
-    #         "Mean VP edge:\t\t" + ",\t\t".join(mean_stats['VP edge']),
-    #     ]))
+    df = pd.concat(stats)
+    df.index = df.index.set_names(['train games', 'agent index'])
+    df.reset_index(inplace=True)
+    df.to_csv('results/df.csv')
 
 if __name__ == "__main__":
 
