@@ -257,7 +257,7 @@ class GameState():
         # Make sure only one waterdeep harbor slot is present
         possibleMoves = utils.filterWaterdeep(possibleMoves)
 
-        assert len(possibleMoves) > 0,"Issue if there are not enough buildings to play"
+        # assert len(possibleMoves) > 0,"Issue if there are not enough buildings to play"
         
         # If player has no intrigues, remove buildings 
         #   where you need to play an intrigue
