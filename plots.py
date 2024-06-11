@@ -8,7 +8,8 @@ import numpy as np
 from tqdm import tqdm
 import argparse
 from agents.agent import Agent
-from agents.rl.dqn_agent import DeepQNet, DQNAgent
+from agents.rl.dqn_agent import DQNAgent
+from agents.rl.dqnet import DeepQNet
 from agents.rl.policy_agent import PolicyAgent
 from agents.baseline.random_agent import RandomAgent
 from game.game import GameState
@@ -16,17 +17,11 @@ from features import featurize
 import eval 
 
 def main(args):
-    deepQAgent = DQNAgent(
-        state_dim=featurize.STATE_DIM, 
-        action_dim=featurize.ACTION_DIM
-    )
     policyAgent = PolicyAgent(
         state_dim=featurize.STATE_DIM, 
         action_dim=featurize.ACTION_DIM
     )
     randomAgent = RandomAgent()
-    # agentTypes = ['Deep Q Agent', 'Random Agent']
-    agents1 = [deepQAgent, randomAgent]
     agents2 = [policyAgent, randomAgent]
 
     # eval_results = []

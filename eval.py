@@ -48,8 +48,9 @@ def eval(agents: list[Agent], n_games: int = 100, verbose=False):
         # print(scores)
         appendStats(stats, VPs, n_agents)
     
-    mean_stats = [
+    return [
         dict({
+            'eval games': n_games,
             'agent type': agent.agent_type(),
             'win rate': np.mean(stats['wins'][iagent]),
             'mean VPs': np.mean(stats['VPs'][iagent]),
@@ -60,8 +61,6 @@ def eval(agents: list[Agent], n_games: int = 100, verbose=False):
         )
         for iagent,agent in enumerate(agents)
     ]
-
-    return mean_stats
 
 if __name__ == "__main__":
 
