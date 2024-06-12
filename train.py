@@ -65,12 +65,9 @@ def main(args):
         agents = [
             DQNAgent(q_net,
                      action_dim=action_dim),
-            DQNAgent(q_net,
-                     action_dim=action_dim),
-            DQNAgent(q_net,
-                     action_dim=action_dim),
-            DQNAgent(q_net,
-                     action_dim=action_dim)        
+            PolicyAgent(state_dim=state_dim, action_dim=action_dim),
+            RandomAgent(),
+            RandomAgent()
         ]
         assert len(agents) == nPlayers
         agent_types = [agent.agent_type() for agent in agents]
@@ -87,19 +84,19 @@ def main(args):
         dfs[seed] = df
         df.to_csv(f'results/training/{"-".join(agent_types)}_{args.expname}_{args.train_ngames}games_seed{seed}.csv')
 
-        agents = [
-            DQNAgent(q_net),
-            RandomAgent(),
-            RandomAgent(),
-            RandomAgent()
-        ]
-        final_stats = eval.eval(agents=agents, n_games=args.final_eval_ngames, verbose=True)
+        # agents = [
+        #     DQNAgent(q_net),
+        #     RandomAgent(),
+        #     RandomAgent(),
+        #     RandomAgent()
+        # ]
+        # final_stats = eval.eval(agents=agents, n_games=args.final_eval_ngames, verbose=True)
 
-        df = pd.DataFrame(final_stats)
-        # df.index = df.index.set_names(['train games', 'agent index'])
-        # df.reset_index(inplace=True)
-        # dfs[seed] = df
-        df.to_csv(f'results/training/{"-".join(agent_types)}_{args.expname}_{args.train_ngames}games_seed{seed}_finaleval.csv')
+        # df = pd.DataFrame(final_stats)
+        # # df.index = df.index.set_names(['train games', 'agent index'])
+        # # df.reset_index(inplace=True)
+        # # dfs[seed] = df
+        # df.to_csv(f'results/training/{"-".join(agent_types)}_{args.expname}_{args.train_ngames}games_seed{seed}_finaleval.csv')
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-# built from policy.py, policy_gradient.py, ppo.py from assignment 2
+# built from policy.py, policy_gradient.py, ppo.py from Stanford CS234 Reinforcement Learning assignment 2
 
 import numpy as np
 import torch

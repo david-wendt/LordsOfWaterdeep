@@ -1,7 +1,4 @@
-''' TODO: Deep Q-network implementation '''
-
-# TODO - config for DQN (or change gradeint file to not use config)
-
+'''repurposed some code from https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html and adjusted'''
 import numpy as np
 import torch
 import torch.nn as nn
@@ -98,7 +95,7 @@ class DQNAgent(Agent):
         self.target_net.requires_grad_(False) # Freeze the target net
         self.target_net.eval()
 
-    # started from code from https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html and adjusted
+    
     def optimize_model(self):
         if not self.trainMode or self.episode % 8 != 0:
             return

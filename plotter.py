@@ -101,7 +101,7 @@ def plot_quest_completion(df, agent_types):
     
 
 
-def plot_metric_across_training_games(df, agent_types, metric):
+def plot_metric_across_training_games(df, agent_types, metric, include_random=True):
     """
     Plots the specified metric across training games for each agent type and saves the plot to a file.
 
@@ -115,6 +115,8 @@ def plot_metric_across_training_games(df, agent_types, metric):
     plt.figure(figsize=(12, 6))
 
     for agent in agent_types:
+        if not include_random and agent == "RandomAgent":
+            continue
         agent_df = df[df['agent type'] == agent]
         mean_metric = agent_df.groupby('train games')[metric].mean()
         std_metric = agent_df.groupby('train games')[metric].std()
@@ -139,7 +141,7 @@ def plot_metric_across_training_games(df, agent_types, metric):
 
 
 if __name__ == "__main__":
-    path_pattern = 'results/training/PolicyAgent-Random*_*_seed*.csv'
+    path_pattern = 'results/training/*RandomAgent-RandomAgent-RandomAgent*default*.csv'
     
     df = read_csv_files(path_pattern)
     
@@ -150,5 +152,11 @@ if __name__ == "__main__":
     plot_quest_completion(df, agent_types)
 
     plot_metric_across_training_games(df, agent_types, 'Buildings Purchased per Game')
-
-    plot_metric_across_training_games(df, agent_types, 'win rate')
+    plot_metric_across_training_games(df, agent_types, 'Intrigue Cards Played per Game')
+    plot_metric_across_training_games(df, agent_types, 'Quests Completed per Game')
+    plot_metric_across_training_games(df, agent_types, 'win rate', include_random=False)
+    plot_metric_across_training_games(df, agent_types, 'Plot Quests Taken Frac')
+    plot_metric_across_training_games(df, agent_types, 'Plot Quests Completed Frac')
+    plot_metric_across_training_games(df, agent_types, 'Lord Quests Taken Frac')
+    plot_metric_across_training_games(df, agent_types, 'Lord Quests Completed Frac')
+    plot_metric_across_training_games(df, agent_types, 'Quests Taken per Game')
